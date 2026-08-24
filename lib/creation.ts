@@ -1,10 +1,28 @@
-import { DEFAULT_CTA, LOOKS, PAGE_TYPES, createProject, emptyBrand, emptyForm } from "./defaults";
-import type { PageCopy, PageType, Project, TemplateId } from "./types";
+import { DEFAULT_CTA, LOOKS, PAGE_TYPES, createProject, emptyBrand, emptyCopy, emptyForm } from "./defaults";
+import { recommendPage } from "./recommend";
+import type { PageCopy, PageType, Project, StepItem, TemplateId } from "./types";
 
 export type PageBrief = {
   audience: string;
   outcome: string;
   offer: string;
+  nextStep: string;
+  cta: string;
+};
+
+export type FixedCopy = {
+  audience: string;
+  headline: string;
+  subheadline: string;
+  problems: string[];
+  body: string;
+  mechanismSteps: StepItem[];
+  offerName: string;
+  offerBullets: string[];
+  proofQuote: string;
+  proofName: string;
+  notFor: string[];
+  guarantee: string;
   nextStep: string;
   cta: string;
 };
@@ -31,6 +49,86 @@ export type TemplateCreation = {
 
 export function emptyBrief(): PageBrief {
   return { audience: "", outcome: "", offer: "", nextStep: "", cta: "" };
+}
+
+export function emptyFixedCopy(): FixedCopy {
+  return {
+    audience: "",
+    headline: "",
+    subheadline: "",
+    problems: ["", "", "", "", ""],
+    body: "",
+    mechanismSteps: [
+      { title: "", text: "" },
+      { title: "", text: "" },
+      { title: "", text: "" },
+    ],
+    offerName: "",
+    offerBullets: ["", "", ""],
+    proofQuote: "",
+    proofName: "",
+    notFor: ["", "", ""],
+    guarantee: "",
+    nextStep: "",
+    cta: "",
+  };
+}
+
+function padList(values: string[], min: number) {
+  const next = values.map((value) => value);
+  while (next.length < min) next.push("");
+  return next;
+}
+
+export function fixedCopyToPageCopy(fixed: FixedCopy, base: PageCopy = emptyCopy()): PageCopy {
+  const audience = fixed.audience.trim();
+  const nextStep = fixed.nextStep.trim();
+  return {
+    ...base,
+    audience,
+    eyebrow: base.eyebrow.trim() || audience,
+    headline: fixed.headline.trim(),
+    subheadline: fixed.subheadline.trim() || nextStep,
+    problems: padList(fixed.problems, 5),
+    body: fixed.body.trim(),
+    mechanismSteps:
+      fixed.mechanismSteps.length >= 3
+        ? fixed.mechanismSteps
+        : [...fixed.mechanismSteps, ...emptyCopy().mechanismSteps].slice(0, 3),
+    offerName: fixed.offerName.trim(),
+    offerBullets: padList(fixed.offerBullets, 3),
+    proof: [
+      {
+        quote: fixed.proofQuote.trim(),
+        name: fixed.proofName.trim(),
+        role: base.proof[0]?.role ?? "",
+      },
+    ],
+    notFor: fixed.notFor.filter((item) => item.trim()),
+    guarantee: fixed.guarantee.trim(),
+    nextStep,
+    cta: fixed.cta.trim(),
+    ctaHref: base.ctaHref || "#form",
+  };
+}
+
+export function pageCopyToFixed(copy: PageCopy): FixedCopy {
+  return {
+    audience: copy.audience,
+    headline: copy.headline,
+    subheadline: copy.subheadline,
+    problems: copy.problems,
+    body: copy.body,
+    mechanismSteps: copy.mechanismSteps,
+    offerName: copy.offerName,
+    offerBullets: copy.offerBullets,
+    proofQuote: copy.proof[0]?.quote ?? "",
+    proofName: copy.proof[0]?.name ?? "",
+    notFor: copy.notFor,
+    guarantee: copy.guarantee,
+    nextStep: copy.nextStep,
+    cta: copy.cta,
+  };
 }
 
 export function looksForType(type: PageType) {
@@ -91,27 +189,64 @@ export function createFromWizard({
   brief: PageBrief;
   source?: Project;
 }): Project {
-  const typeLabel = PAGE_TYPES.find((item) => item.id === type)?.label ?? "página";
-  const cta = brief.cta.trim() || DEFAULT_CTA[type];
-  const project = createProject({
-    type,
+  return createFromFixedCopy({
+    name,
+    partner,
+    copy: {
+      ...emptyFixedCopy(),
+      audience: brief.audience,
+      headline: brief.outcome,
+      offerName: brief.offer,
+      nextStep: brief.nextStep,
+      cta: brief.cta,
+    },
+    source,
     template,
-    name: name.trim() || brief.offer.trim() || `Nova ${typeLabel.toLowerCase()}`,
+    type,
+  });
+}
+
+export function createFromFixedCopy({
+  name,
+  partner,
+  copy,
+  source,
+  template,
+  type,
+}: {
+  name: string;
+  partner: string;
+  copy: FixedCopy;
+  source?: Project;
+  template?: TemplateId;
+  type?: PageType;
+}): Project {
+  const photos = source ? { ...source.photos, gallery: [...source.photos.gallery] } : undefined;
+  const picked = template
+    ? { template, type: type ?? LOOKS.find((item) => item.id === template)?.type ?? "opt-in" }
+    : recommendPage(copy, photos);
+  const pageType = type ?? picked.type;
+  const pageTemplate = template ?? picked.template;
+  const typeLabel = PAGE_TYPES.find((item) => item.id === pageType)?.label ?? "página";
+  const cta = copy.cta.trim() || DEFAULT_CTA[pageType];
+  const pageCopy = fixedCopyToPageCopy({ ...copy, cta });
+  const project = createProject({
+    type: pageType,
+    template: pageTemplate,
+    name: name.trim() || copy.offerName.trim() || copy.headline.trim().slice(0, 42) || `Nova ${typeLabel.toLowerCase()}`,
     partner: source?.partner ?? (partner.trim() || "Parceiro"),
     brand: source
       ? { ...source.brand }
       : { ...emptyBrand(), name: partner.trim() || "Parceiro" },
-    photos: source ? { ...source.photos, gallery: [...source.photos.gallery] } : undefined,
+    photos,
+    copy: pageCopy,
     form: {
       ...emptyForm(),
       submitLabel: cta,
     },
   });
 
-  return {
-    ...project,
-    copy: applyBrief(project.copy, { ...brief, cta }),
-  };
+  return project;
 }
 
 export function cloneAsNewPage(source: Project, template: TemplateId, type: PageType): Project {

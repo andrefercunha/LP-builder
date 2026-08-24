@@ -4,8 +4,9 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { renderPage } from "@/components/templates/render";
-import { FLAG_TAB, creationFor } from "@/lib/creation";
+import { FLAG_TAB, creationFor, pageCopyToFixed } from "@/lib/creation";
 import { LOOKS, PAGE_TYPES } from "@/lib/defaults";
+import { recommendPage } from "@/lib/recommend";
 import { downloadHtml, downloadJson } from "@/lib/export-html";
 import { FONT_CATALOG } from "@/lib/fonts";
 import { auditProject, qualityScore } from "@/lib/quality";
@@ -174,12 +175,33 @@ function TypeTab({
   project: Project;
   onChange: (project: Project) => void;
 }) {
+  const recommended = recommendPage(pageCopyToFixed(project.copy), project.photos);
+  const recLook = LOOKS.find((item) => item.id === recommended.template);
+
   return (
     <div className="grid gap-4">
       <p className="text-[12px] leading-5 text-mist">
-        Mudar o tipo ou a linguagem troca o esqueleto. A marca, as fotos e a copy ficam — o estúdio só mostra os
-        campos que este look usa.
+        A linguagem sai do copy. Podes trocar se a recomendação falhar — a marca, as fotos e o texto ficam.
       </p>
+      {recommended.template !== project.template ? (
+        <button
+          type="button"
+          onClick={() =>
+            onChange({
+              ...project,
+              type: recommended.type,
+              template: recommended.template,
+            })
+          }
+          className="border border-[#c4a574] px-4 py-4 text-left"
+        >
+          <p className="text-[11px] uppercase tracking-[0.16em] text-[#c4a574]">Recomendado para este copy</p>
+          <p className="mt-2 text-[16px]">{recLook?.label}</p>
+          <p className="mt-1 text-[13px] text-mist">{recommended.why[0]}</p>
+        </button>
+      ) : (
+        <p className="text-[13px] text-[#c4a574]">Este copy pede {recLook?.label}.</p>
+      )}
       <TextField
         label="Parceiro"
         value={project.partner}

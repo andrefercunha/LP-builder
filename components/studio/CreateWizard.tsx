@@ -2,271 +2,280 @@
 
 import { useMemo, useState } from "react";
 import {
-  createFromWizard,
-  emptyBrief,
-  looksForType,
+  createFromFixedCopy,
+  emptyFixedCopy,
   uniqueBrandSources,
-  type PageBrief,
+  type FixedCopy,
 } from "@/lib/creation";
-import { DEFAULT_CTA, LOOKS, PAGE_TYPES } from "@/lib/defaults";
-import type { PageType, Project, TemplateId } from "@/lib/types";
-
-type Step = "tipo" | "look" | "brief";
+import { LOOKS } from "@/lib/defaults";
+import { canRecommend, rankLooks } from "@/lib/recommend";
+import type { Project, TemplateId } from "@/lib/types";
+import { ListEditor, TextField } from "./fields";
 
 export function CreateWizard({
   projects,
-  initialType,
   initialSourceId,
   onClose,
   onCreate,
 }: {
   projects: Project[];
-  initialType?: PageType;
+  initialType?: string;
   initialSourceId?: string;
   onClose: () => void;
   onCreate: (project: Project) => void;
 }) {
   const sources = useMemo(() => uniqueBrandSources(projects), [projects]);
-  const [step, setStep] = useState<Step>(initialType ? "look" : "tipo");
-  const [type, setType] = useState<PageType | undefined>(initialType);
-  const [template, setTemplate] = useState<TemplateId | undefined>(
-    initialType ? looksForType(initialType)[0]?.id : undefined,
-  );
   const [sourceId, setSourceId] = useState(initialSourceId ?? "");
   const [name, setName] = useState("");
   const [partner, setPartner] = useState(() => {
     const source = projects.find((item) => item.id === initialSourceId);
     return source?.partner ?? "";
   });
-  const [brief, setBrief] = useState<PageBrief>(emptyBrief());
+  const [copy, setCopy] = useState<FixedCopy>(emptyFixedCopy());
+  const [override, setOverride] = useState<TemplateId | null>(null);
 
-  const looks = type ? looksForType(type) : [];
-  const typeMeta = PAGE_TYPES.find((item) => item.id === type);
-  const lookMeta = LOOKS.find((item) => item.id === template);
   const source = sources.find((item) => item.id === sourceId);
+  const ranked = rankLooks(copy, source?.photos);
+  const picked = override ? ranked.find((item) => item.template === override) ?? ranked[0] : ranked[0];
+  const ready = canRecommend(copy);
 
-  function patchBrief<K extends keyof PageBrief>(key: K, value: PageBrief[K]) {
-    setBrief((current) => ({ ...current, [key]: value }));
+  function patch<K extends keyof FixedCopy>(key: K, value: FixedCopy[K]) {
+    setCopy((current) => ({ ...current, [key]: value }));
+    setOverride(null);
   }
 
   function finish() {
-    if (!type || !template) return;
+    if (!ready || !picked) return;
     onCreate(
-      createFromWizard({
-        type,
-        template,
+      createFromFixedCopy({
         name,
         partner: source?.partner ?? partner,
-        brief: {
-          ...brief,
-          cta: brief.cta.trim() || DEFAULT_CTA[type],
-        },
+        copy,
         source,
+        template: picked.template,
+        type: picked.type,
       }),
     );
   }
 
   return (
     <div className="fixed inset-0 z-50 grid place-items-center bg-[#0c0f0ecc] p-4">
-      <div className="max-h-[92vh] w-full max-w-3xl overflow-y-auto border border-line bg-[#0a0c0b]">
-        <div className="flex items-center justify-between border-b border-line px-6 py-4">
-          <p className="text-[11px] uppercase tracking-[0.16em] text-mist">
-            Nova página
-            {typeMeta ? ` · ${typeMeta.label}` : ""}
-            {lookMeta ? ` · ${lookMeta.label}` : ""}
-          </p>
-          <button type="button" onClick={onClose} className="text-[12px] text-mist underline">
-            Cancelar
-          </button>
-        </div>
+      <div className="grid max-h-[92vh] w-full max-w-6xl overflow-hidden border border-line bg-[#0a0c0b] xl:grid-cols-[minmax(0,1fr)_340px]">
+        <div className="studio-scroll max-h-[92vh] overflow-y-auto">
+          <div className="flex items-center justify-between border-b border-line px-6 py-4">
+            <p className="text-[11px] uppercase tracking-[0.16em] text-mist">Copy no formato fixo</p>
+            <button type="button" onClick={onClose} className="text-[12px] text-mist underline">
+              Cancelar
+            </button>
+          </div>
 
-        <div className="flex gap-4 border-b border-line px-6 py-3 text-[11px] uppercase tracking-[0.14em]">
-          {(
-            [
-              ["tipo", "1 · Tipo"],
-              ["look", "2 · Linguagem"],
-              ["brief", "3 · Briefing"],
-            ] as const
-          ).map(([id, label]) => (
-            <span key={id} className={step === id ? "text-paper" : "text-mist"}>
-              {label}
-            </span>
-          ))}
-        </div>
+          <div className="grid gap-5 px-6 py-6">
+            <p className="text-[14px] leading-6 text-mist">
+              Sempre os mesmos blocos. Preenche o que tens — o estúdio lê o copy e recomenda a página. Não inventa
+              layout.
+            </p>
 
-        <div className="grid gap-4 px-6 py-6">
-          {step === "tipo" ? (
-            PAGE_TYPES.map((item) => (
-              <button
-                key={item.id}
-                type="button"
-                onClick={() => {
-                  setType(item.id);
-                  setTemplate(looksForType(item.id)[0]?.id);
-                  setStep("look");
+            <label className="grid gap-2">
+              <span className="text-[11px] uppercase tracking-[0.16em] text-mist">Nome interno</span>
+              <input
+                value={name}
+                onChange={(event) => setName(event.target.value)}
+                placeholder={copy.offerName || copy.headline || "Nova página"}
+                className="border border-line bg-ink px-3 py-2.5 text-[14px] outline-none focus:border-[#c4a574]"
+              />
+            </label>
+
+            <div className="grid gap-2">
+              <span className="text-[11px] uppercase tracking-[0.16em] text-mist">Marca</span>
+              <select
+                value={sourceId}
+                onChange={(event) => {
+                  const next = event.target.value;
+                  setSourceId(next);
+                  const found = sources.find((item) => item.id === next);
+                  if (found) setPartner(found.partner);
+                  setOverride(null);
                 }}
-                className="border border-line px-5 py-5 text-left hover:border-[#c4a574]"
+                className="border border-line bg-ink px-3 py-2.5 text-[13px]"
               >
-                <p className="font-display text-[32px] leading-none">{item.label}</p>
-                <p className="mt-3 text-[13px] leading-6 text-mist">{item.brief}</p>
-              </button>
-            ))
-          ) : null}
-
-          {step === "look" && type ? (
-            <>
-              <p className="text-[13px] leading-6 text-mist">
-                A linguagem decide o esqueleto. A copy e as fotos é que fazem a página parecer deste parceiro.
-              </p>
-              {looks.map((item) => (
-                <button
-                  key={item.id}
-                  type="button"
-                  onClick={() => {
-                    setTemplate(item.id);
-                    setStep("brief");
-                  }}
-                  className={`border px-5 py-4 text-left ${
-                    template === item.id ? "border-[#c4a574] bg-[#141816]" : "border-line hover:border-[#c4a574]"
-                  }`}
-                >
-                  <p className="text-[11px] uppercase tracking-[0.16em] text-[#c4a574]">{item.label}</p>
-                  <p className="mt-2 text-[15px]">{item.brief}</p>
-                </button>
-              ))}
-              <button type="button" onClick={() => setStep("tipo")} className="justify-self-start text-[12px] text-mist">
-                ← Tipo
-              </button>
-            </>
-          ) : null}
-
-          {step === "brief" && type && template ? (
-            <>
-              <label className="grid gap-2">
-                <span className="text-[11px] uppercase tracking-[0.16em] text-mist">Nome da página</span>
+                <option value="">Marca nova</option>
+                {sources.map((item) => (
+                  <option key={item.id} value={item.id}>
+                    {item.brand.name} · {item.partner}
+                  </option>
+                ))}
+              </select>
+              {source ? (
+                <p className="text-[12px] text-mist">
+                  Cores, fontes e fotos de {source.brand.name}. A recomendação também olha para as fotos.
+                </p>
+              ) : (
                 <input
-                  value={name}
-                  onChange={(event) => setName(event.target.value)}
-                  placeholder={brief.offer || `Nova ${typeMeta?.label.toLowerCase()}`}
+                  value={partner}
+                  onChange={(event) => setPartner(event.target.value)}
+                  placeholder="Nome do parceiro"
                   className="border border-line bg-ink px-3 py-2.5 text-[14px] outline-none focus:border-[#c4a574]"
                 />
-              </label>
+              )}
+            </div>
 
-              <div className="grid gap-2">
-                <span className="text-[11px] uppercase tracking-[0.16em] text-mist">Marca</span>
-                <select
-                  value={sourceId}
-                  onChange={(event) => {
-                    const next = event.target.value;
-                    setSourceId(next);
-                    const found = sources.find((item) => item.id === next);
-                    if (found) setPartner(found.partner);
-                  }}
-                  className="border border-line bg-ink px-3 py-2.5 text-[13px]"
-                >
-                  <option value="">Marca nova</option>
-                  {sources.map((item) => (
-                    <option key={item.id} value={item.id}>
-                      {item.brand.name} · {item.partner}
-                    </option>
-                  ))}
-                </select>
-                {source ? (
-                  <p className="text-[12px] text-mist">
-                    Traz cores, fontes e fotos de {source.brand.name}. A copy começa vazia — ou do briefing abaixo.
-                  </p>
-                ) : (
+            <TextField label="Para quem é" value={copy.audience} onChange={(audience) => patch("audience", audience)} />
+            <TextField
+              label="Headline / resultado"
+              hint="Promessa específica. É o bloco que mais pesa na recomendação."
+              value={copy.headline}
+              onChange={(headline) => patch("headline", headline)}
+              multiline
+              rows={3}
+            />
+            <TextField
+              label="Subheadline"
+              value={copy.subheadline}
+              onChange={(subheadline) => patch("subheadline", subheadline)}
+              multiline
+              rows={3}
+            />
+            <ListEditor
+              label="Problemas"
+              hint="Um por linha, na linguagem do cliente."
+              values={copy.problems}
+              onChange={(problems) => patch("problems", problems)}
+              min={5}
+            />
+            <TextField
+              label="História / argumento"
+              hint="Se isto tiver peso, a recomendação foge do ecrã único."
+              value={copy.body}
+              onChange={(body) => patch("body", body)}
+              multiline
+              rows={6}
+            />
+
+            <div className="grid gap-3">
+              <span className="text-[11px] uppercase tracking-[0.16em] text-mist">Mecanismo</span>
+              {copy.mechanismSteps.map((step, index) => (
+                <div key={index} className="grid gap-2 border border-line p-3">
                   <input
-                    value={partner}
-                    onChange={(event) => setPartner(event.target.value)}
-                    placeholder="Nome do parceiro"
-                    className="border border-line bg-ink px-3 py-2.5 text-[14px] outline-none focus:border-[#c4a574]"
+                    value={step.title}
+                    placeholder="Nome do passo"
+                    onChange={(event) => {
+                      const mechanismSteps = [...copy.mechanismSteps];
+                      mechanismSteps[index] = { ...step, title: event.target.value };
+                      patch("mechanismSteps", mechanismSteps);
+                    }}
+                    className="border border-line bg-ink px-3 py-2 text-[13px] outline-none"
                   />
-                )}
-              </div>
+                  <textarea
+                    value={step.text}
+                    placeholder="O que acontece neste passo"
+                    onChange={(event) => {
+                      const mechanismSteps = [...copy.mechanismSteps];
+                      mechanismSteps[index] = { ...step, text: event.target.value };
+                      patch("mechanismSteps", mechanismSteps);
+                    }}
+                    className="border border-line bg-ink px-3 py-2 text-[13px] outline-none"
+                    rows={2}
+                  />
+                </div>
+              ))}
+            </div>
 
-              <p className="pt-2 text-[13px] leading-6 text-mist">
-                Cinco linhas chegam para a página deixar de estar em branco. O resto faz-se no estúdio, só nos
-                campos que este look usa.
-              </p>
-
-              <BriefInput label="Para quem é" value={brief.audience} onChange={(value) => patchBrief("audience", value)} />
-              <BriefInput
-                label="Headline / resultado"
-                value={brief.outcome}
-                onChange={(value) => patchBrief("outcome", value)}
-                multiline
-              />
-              <BriefInput
-                label={type === "thanks" ? "O que acabou de acontecer" : "Nome da oferta / sessão"}
-                value={brief.offer}
-                onChange={(value) => patchBrief("offer", value)}
-              />
-              <BriefInput
-                label="O que acontece a seguir"
-                value={brief.nextStep}
-                onChange={(value) => patchBrief("nextStep", value)}
-                multiline
-              />
-              <BriefInput
-                label="Texto do botão"
-                value={brief.cta}
-                onChange={(value) => patchBrief("cta", value)}
-                placeholder={DEFAULT_CTA[type]}
-              />
-
-              <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
-                <button type="button" onClick={() => setStep("look")} className="text-[12px] text-mist">
-                  ← Linguagem
-                </button>
-                <button
-                  type="button"
-                  onClick={finish}
-                  className="border border-[#c4a574] px-4 py-2 text-[11px] uppercase tracking-[0.14em] text-[#c4a574]"
-                >
-                  Abrir no estúdio
-                </button>
-              </div>
-            </>
-          ) : null}
+            <TextField
+              label="Nome da oferta / sessão / lead"
+              value={copy.offerName}
+              onChange={(offerName) => patch("offerName", offerName)}
+            />
+            <ListEditor
+              label="O que inclui"
+              values={copy.offerBullets}
+              onChange={(offerBullets) => patch("offerBullets", offerBullets)}
+              min={3}
+            />
+            <TextField
+              label="Prova autorizada"
+              value={copy.proofQuote}
+              onChange={(proofQuote) => patch("proofQuote", proofQuote)}
+              multiline
+              rows={3}
+            />
+            <TextField label="Nome da prova" value={copy.proofName} onChange={(proofName) => patch("proofName", proofName)} />
+            <ListEditor
+              label="Não é para"
+              values={copy.notFor}
+              onChange={(notFor) => patch("notFor", notFor)}
+              min={3}
+            />
+            <TextField
+              label="Garantia / honestidade"
+              value={copy.guarantee}
+              onChange={(guarantee) => patch("guarantee", guarantee)}
+              multiline
+              rows={3}
+            />
+            <TextField
+              label="O que acontece a seguir"
+              value={copy.nextStep}
+              onChange={(nextStep) => patch("nextStep", nextStep)}
+              multiline
+              rows={3}
+            />
+            <TextField label="Texto do botão" value={copy.cta} onChange={(cta) => patch("cta", cta)} />
+          </div>
         </div>
+
+        <aside className="studio-scroll border-t border-line xl:max-h-[92vh] xl:overflow-y-auto xl:border-l xl:border-t-0">
+          <div className="border-b border-line px-5 py-4">
+            <p className="text-[11px] uppercase tracking-[0.16em] text-mist">Página recomendada</p>
+            {ready && picked ? (
+              <>
+                <p className="mt-3 font-display text-[42px] leading-none">{picked.label}</p>
+                <p className="mt-2 text-[13px] text-mist">
+                  {LOOKS.find((item) => item.id === picked.template)?.brief}
+                </p>
+                <ul className="mt-4 grid gap-2 text-[13px] leading-5 text-paper">
+                  {picked.why.map((reason) => (
+                    <li key={reason}>{reason}</li>
+                  ))}
+                </ul>
+              </>
+            ) : (
+              <p className="mt-3 text-[13px] leading-6 text-mist">
+                Escreve a headline, o botão ou o nome da oferta. A recomendação aparece aqui.
+              </p>
+            )}
+          </div>
+
+          {ready ? (
+            <div className="grid gap-2 px-5 py-4">
+              <p className="text-[11px] uppercase tracking-[0.16em] text-mist">Ou escolhe outra</p>
+              {ranked.slice(0, 4).map((item) => (
+                <button
+                  key={item.template}
+                  type="button"
+                  onClick={() => setOverride(item.template)}
+                  className={`border px-3 py-3 text-left ${
+                    picked?.template === item.template ? "border-[#c4a574] bg-[#141816]" : "border-line"
+                  }`}
+                >
+                  <p className="text-[14px]">{item.label}</p>
+                  <p className="mt-1 text-[12px] text-mist">{item.why[0]}</p>
+                </button>
+              ))}
+            </div>
+          ) : null}
+
+          <div className="px-5 py-5">
+            <button
+              type="button"
+              onClick={finish}
+              disabled={!ready}
+              className="w-full border border-[#c4a574] px-4 py-3 text-[11px] uppercase tracking-[0.14em] text-[#c4a574] disabled:opacity-40"
+            >
+              Abrir esta página
+            </button>
+          </div>
+        </aside>
       </div>
     </div>
-  );
-}
-
-function BriefInput({
-  label,
-  value,
-  onChange,
-  multiline,
-  placeholder,
-}: {
-  label: string;
-  value: string;
-  onChange: (value: string) => void;
-  multiline?: boolean;
-  placeholder?: string;
-}) {
-  return (
-    <label className="grid gap-2">
-      <span className="text-[11px] uppercase tracking-[0.16em] text-mist">{label}</span>
-      {multiline ? (
-        <textarea
-          value={value}
-          rows={3}
-          placeholder={placeholder}
-          onChange={(event) => onChange(event.target.value)}
-          className="resize-y border border-line bg-ink px-3 py-2.5 text-[14px] outline-none focus:border-[#c4a574]"
-        />
-      ) : (
-        <input
-          value={value}
-          placeholder={placeholder}
-          onChange={(event) => onChange(event.target.value)}
-          className="border border-line bg-ink px-3 py-2.5 text-[14px] outline-none focus:border-[#c4a574]"
-        />
-      )}
-    </label>
   );
 }

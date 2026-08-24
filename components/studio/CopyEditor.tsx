@@ -51,7 +51,9 @@ export function CopyEditor({
           <span className="text-[11px] uppercase tracking-[0.16em] text-[#c4a574]">Briefing rápido</span>
           <span className="text-[12px] text-mist">{briefOpen ? "fechar" : "abrir"}</span>
         </button>
-        <p className="mt-2 text-[12px] leading-5 text-mist">{spec.intro}</p>
+        <p className="mt-2 text-[12px] leading-5 text-mist">
+          {spec.intro} O formato do copy é fixo. Se mudares o texto, a tab Tipo volta a recomendar a página.
+        </p>
         {briefOpen ? (
           <div className="mt-4 grid gap-3">
             <input

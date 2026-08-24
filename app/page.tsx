@@ -1,10 +1,10 @@
 "use client";
 
 import { CreateWizard } from "@/components/studio/CreateWizard";
-import { LOOKS, PAGE_TYPES } from "@/lib/defaults";
+import { LOOKS } from "@/lib/defaults";
 import { auditProject, qualityScore } from "@/lib/quality";
 import { loadProjects, resetSeeds, upsertProject } from "@/lib/store";
-import type { PageType, Project } from "@/lib/types";
+import type { Project } from "@/lib/types";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -12,7 +12,7 @@ import { useEffect, useState } from "react";
 export default function HomePage() {
   const router = useRouter();
   const [projects, setProjects] = useState<Project[]>([]);
-  const [wizard, setWizard] = useState<{ type?: PageType; sourceId?: string } | null>(null);
+  const [wizard, setWizard] = useState<{ sourceId?: string } | null>(null);
 
   useEffect(() => {
     setProjects(loadProjects());
@@ -31,7 +31,7 @@ export default function HomePage() {
           <div>
             <p className="text-[11px] uppercase tracking-[0.18em] text-mist">REDNA · Estúdio LP</p>
             <h1 className="mt-3 max-w-3xl font-display text-[clamp(42px,7vw,78px)] leading-[0.92]">
-              Tipo, linguagem, briefing. A página começa preenchida, não vazia.
+              O copy entra num formato fixo. O estúdio recomenda a página.
             </h1>
           </div>
           <button
@@ -43,22 +43,22 @@ export default function HomePage() {
           </button>
         </header>
 
-        <section className="grid gap-4 py-10 md:grid-cols-2 xl:grid-cols-4">
-          {PAGE_TYPES.map((item) => (
-            <button
-              key={item.id}
-              type="button"
-              onClick={() => setWizard({ type: item.id })}
-              className="border border-line p-5 text-left hover:border-[#c4a574]"
-            >
-              <p className="text-[11px] uppercase tracking-[0.16em] text-[#c4a574]">Nova</p>
-              <h2 className="mt-3 font-display text-[32px] leading-none">{item.label}</h2>
-              <p className="mt-3 text-[13px] leading-6 text-mist">{item.brief}</p>
-            </button>
-          ))}
+        <section className="grid gap-8 border-b border-line py-10 md:grid-cols-[1.2fr_0.8fr] md:items-end">
+          <p className="max-w-xl text-[16px] leading-7 text-mist">
+            Sempre os mesmos blocos: para quem, headline, problemas, história, mecanismo, oferta, prova, próximo
+            passo. Não escolhes o look primeiro. A linguagem — Carta, Cartaz, Revista, Dossier, Manifesto, Recibo —
+            sai do que está preenchido.
+          </p>
+          <button
+            type="button"
+            onClick={() => setWizard({})}
+            className="justify-self-start border border-[#c4a574] px-5 py-3 text-[12px] uppercase tracking-[0.16em] text-[#c4a574] md:justify-self-end"
+          >
+            Entregar copy
+          </button>
         </section>
 
-        <section className="pb-20">
+        <section className="pb-20 pt-10">
           <p className="mb-5 text-[11px] uppercase tracking-[0.16em] text-mist">Páginas</p>
           <div className="grid gap-0 border-t border-line">
             {projects.map((project) => {
@@ -95,7 +95,6 @@ export default function HomePage() {
       {wizard ? (
         <CreateWizard
           projects={projects}
-          initialType={wizard.type}
           initialSourceId={wizard.sourceId}
           onClose={() => setWizard(null)}
           onCreate={openCreated}
