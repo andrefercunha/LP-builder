@@ -10,7 +10,7 @@ export function PageFrame({
 }) {
   const { brand } = project;
   const radius =
-    brand.radius === "none" ? "0px" : brand.radius === "sm" ? "8px" : "16px";
+    brand.radius === "none" ? "0px" : brand.radius === "sm" ? "10px" : "18px";
 
   return (
     <div
@@ -36,6 +36,7 @@ export function PageFrame({
       {fontHref([brand.headingFont, brand.bodyFont]).map((href) => (
         <link key={href} rel="stylesheet" href={href} />
       ))}
+      <div className="lp-grain" aria-hidden />
       {children}
     </div>
   );
@@ -57,9 +58,9 @@ export function Heading({
       style={{
         fontFamily: "var(--lp-heading)",
         fontWeight: 500,
-        letterSpacing: "-0.04em",
-        lineHeight: 0.95,
-        fontSize: `clamp(${Math.round(size * 0.52)}px, 6vw, ${size}px)`,
+        letterSpacing: "-0.045em",
+        lineHeight: 0.94,
+        fontSize: `clamp(${Math.round(size * 0.5)}px, 6.2vw, ${size}px)`,
         margin: 0,
         ...style,
       }}
@@ -71,20 +72,7 @@ export function Heading({
 
 export function Eyebrow({ children }: { children: React.ReactNode }) {
   if (!children) return null;
-  return (
-    <p
-      style={{
-        margin: "0 0 18px",
-        color: "var(--lp-accent)",
-        fontSize: 12,
-        fontWeight: 600,
-        letterSpacing: "0.16em",
-        textTransform: "uppercase",
-      }}
-    >
-      {children}
-    </p>
-  );
+  return <p className="lp-rule">{children}</p>;
 }
 
 export function CtaButton({
@@ -98,43 +86,10 @@ export function CtaButton({
 }) {
   if (!children) return null;
   return (
-    <a
-      href={href || "#form"}
-      style={{
-        display: full ? "block" : "inline-block",
-        textAlign: "center",
-        background: "var(--lp-accent)",
-        color: "var(--lp-primary)",
-        textDecoration: "none",
-        padding: "16px 28px",
-        borderRadius: "var(--lp-radius)",
-        fontWeight: 650,
-        letterSpacing: "0.02em",
-        fontSize: 15,
-      }}
-    >
+    <a href={href || "#form"} className={`lp-cta${full ? " full" : ""}`}>
       {children}
+      <span aria-hidden>→</span>
     </a>
-  );
-}
-
-export function FieldInput({ label }: { label: string }) {
-  return (
-    <label style={{ display: "grid", gap: 6, fontSize: 12, color: "var(--lp-muted)" }}>
-      {label}
-      <input
-        placeholder={label}
-        style={{
-          width: "100%",
-          border: "1px solid color-mix(in srgb, var(--lp-fg) 18%, transparent)",
-          background: "color-mix(in srgb, var(--lp-bg) 55%, var(--lp-surface))",
-          color: "var(--lp-fg)",
-          padding: "12px 14px",
-          borderRadius: "var(--lp-radius)",
-          outline: "none",
-        }}
-      />
-    </label>
   );
 }
 
@@ -148,37 +103,19 @@ const FIELD_LABELS = {
 
 export function LeadForm({ project }: { project: Project }) {
   return (
-    <form
-      id="form"
-      onSubmit={(event) => event.preventDefault()}
-      style={{
-        display: "grid",
-        gap: 12,
-        background: "var(--lp-surface)",
-        padding: 22,
-        borderRadius: "var(--lp-radius)",
-        border: "1px solid color-mix(in srgb, var(--lp-fg) 10%, transparent)",
-      }}
-    >
+    <form id="form" className="lp-form" onSubmit={(event) => event.preventDefault()}>
       {project.form.fields.map((field) => (
-        <FieldInput key={field} label={FIELD_LABELS[field]} />
+        <label key={field} className="lp-field">
+          {FIELD_LABELS[field]}
+          <input placeholder={FIELD_LABELS[field]} />
+        </label>
       ))}
-      <button
-        type="submit"
-        style={{
-          border: 0,
-          background: "var(--lp-accent)",
-          color: "var(--lp-primary)",
-          padding: "15px 18px",
-          borderRadius: "var(--lp-radius)",
-          fontWeight: 700,
-          cursor: "pointer",
-        }}
-      >
+      <button type="submit" className="lp-cta full">
         {project.form.submitLabel || project.copy.cta}
+        <span aria-hidden>→</span>
       </button>
       {project.form.note ? (
-        <p style={{ margin: 0, fontSize: 11, lineHeight: 1.5, color: "var(--lp-muted)" }}>
+        <p style={{ margin: 0, fontSize: 11, lineHeight: 1.55, color: "var(--lp-muted)" }}>
           {project.form.note}
         </p>
       ) : null}
@@ -186,27 +123,85 @@ export function LeadForm({ project }: { project: Project }) {
   );
 }
 
-export function Shell({ children }: { children: React.ReactNode }) {
+export function Shell({
+  children,
+  wide,
+}: {
+  children: React.ReactNode;
+  wide?: boolean;
+}) {
   return (
-    <div style={{ width: "min(1120px, calc(100% - 40px))", margin: "0 auto" }}>
+    <div style={{ width: wide ? "min(1280px, calc(100% - 36px))" : "min(1120px, calc(100% - 40px))", margin: "0 auto" }}>
       {children}
     </div>
   );
 }
 
-export function LogoMark({ project }: { project: Project }) {
+export function LogoMark({ project, invert }: { project: Project; invert?: boolean }) {
   if (project.brand.logo) {
     return (
       <img
         src={project.brand.logo}
         alt={project.brand.name}
-        style={{ height: 28, width: "auto" }}
+        style={{ height: 28, width: "auto", filter: invert ? "brightness(10)" : undefined }}
       />
     );
   }
   return (
-    <span style={{ fontWeight: 700, letterSpacing: "0.14em", fontSize: 12 }}>
+    <span style={{ fontWeight: 700, letterSpacing: "0.16em", fontSize: 12, textTransform: "uppercase" }}>
       {project.brand.name}
     </span>
+  );
+}
+
+export function TreatedPhoto({
+  src,
+  ratio = "4 / 5",
+  height,
+}: {
+  src: string;
+  ratio?: string;
+  height?: number | string;
+}) {
+  return (
+    <div className="lp-photo">
+      <div className="lp-photo-shift" />
+      <div className="lp-photo-media" style={{ aspectRatio: height ? undefined : ratio, height }}>
+        <img src={src} alt="" />
+        <div className="lp-photo-grade" />
+      </div>
+    </div>
+  );
+}
+
+export function Marquee({ items }: { items: string[] }) {
+  if (items.length === 0) return null;
+  const loop = [...items, ...items];
+  return (
+    <div className="lp-marquee">
+      <div className="lp-marquee-track">
+        {loop.map((item, index) => (
+          <span key={`${item}-${index}`} className="lp-marquee-item">
+            {item}
+          </span>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+export function Faqs({ items }: { items: Array<{ q: string; a: string }> }) {
+  if (items.length === 0) return null;
+  return (
+    <div className="lp-faq">
+      {items.map((item) => (
+        <details key={item.q}>
+          <summary>{item.q}</summary>
+          <p style={{ margin: "12px 0 0", color: "var(--lp-muted)", lineHeight: 1.65, maxWidth: 680 }}>
+            {item.a}
+          </p>
+        </details>
+      ))}
+    </div>
   );
 }

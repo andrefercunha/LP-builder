@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Instrument_Serif, Libre_Franklin } from "next/font/google";
 import "./globals.css";
+import "./lp.css";
 
 const display = Instrument_Serif({
   subsets: ["latin"],

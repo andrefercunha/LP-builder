@@ -1,0 +1,302 @@
+[data-lp-root] {
+  position: relative;
+  isolation: isolate;
+  font-kerning: normal;
+  text-rendering: optimizeLegibility;
+}
+
+[data-lp-root] * {
+  box-sizing: border-box;
+}
+
+[data-lp-root] ::selection {
+  background: var(--lp-accent);
+  color: var(--lp-primary);
+}
+
+.lp-grain,
+.lp-grain::after {
+  pointer-events: none;
+}
+
+.lp-grain {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  opacity: 0.11;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 220 220' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+.lp-cta {
+  position: relative;
+  overflow: hidden;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  text-decoration: none;
+  background: var(--lp-accent);
+  color: var(--lp-primary);
+  padding: 17px 30px;
+  border-radius: var(--lp-radius);
+  font-weight: 650;
+  letter-spacing: 0.03em;
+  font-size: 14px;
+  border: 0;
+  cursor: pointer;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.28),
+    0 14px 40px color-mix(in srgb, var(--lp-accent) 28%, transparent);
+  transition: transform 0.28s ease, box-shadow 0.28s ease;
+}
+
+.lp-cta.full {
+  display: flex;
+  width: 100%;
+}
+
+.lp-cta:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.34),
+    0 18px 48px color-mix(in srgb, var(--lp-accent) 36%, transparent);
+}
+
+.lp-cta::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    115deg,
+    transparent 20%,
+    rgba(255, 255, 255, 0.32) 48%,
+    transparent 72%
+  );
+  transform: translateX(-130%);
+  transition: transform 0.7s ease;
+}
+
+.lp-cta:hover::after {
+  transform: translateX(130%);
+}
+
+.lp-photo {
+  position: relative;
+  display: block;
+}
+
+.lp-photo-shift {
+  position: absolute;
+  inset: 18px -14px -14px 18px;
+  border: 1px solid var(--lp-accent);
+  opacity: 0.75;
+  pointer-events: none;
+}
+
+.lp-photo-media {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--lp-radius);
+  background: var(--lp-primary);
+}
+
+.lp-photo-media img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: grayscale(0.28) contrast(1.12) saturate(0.78);
+  transform: scale(1.04);
+  transition: transform 1.2s ease, filter 0.6s ease;
+}
+
+.lp-photo:hover .lp-photo-media img {
+  transform: scale(1.08);
+  filter: grayscale(0.08) contrast(1.14) saturate(0.92);
+}
+
+.lp-photo-grade {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(180deg, transparent 40%, color-mix(in srgb, var(--lp-primary) 42%, transparent)),
+    color-mix(in srgb, var(--lp-accent) 22%, transparent);
+  mix-blend-mode: multiply;
+  pointer-events: none;
+}
+
+.lp-form {
+  display: grid;
+  gap: 13px;
+  background: color-mix(in srgb, var(--lp-surface) 88%, transparent);
+  padding: 24px;
+  border-radius: var(--lp-radius);
+  border: 1px solid color-mix(in srgb, var(--lp-fg) 10%, transparent);
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--lp-accent) 12%, transparent),
+    0 24px 60px rgba(0, 0, 0, 0.18);
+  backdrop-filter: blur(10px);
+  position: relative;
+}
+
+.lp-form::before {
+  content: "";
+  position: absolute;
+  left: 24px;
+  right: 24px;
+  top: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--lp-accent), transparent);
+}
+
+.lp-field {
+  display: grid;
+  gap: 7px;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--lp-muted);
+}
+
+.lp-field input {
+  width: 100%;
+  border: 0;
+  border-bottom: 1px solid color-mix(in srgb, var(--lp-fg) 18%, transparent);
+  background: transparent;
+  color: var(--lp-fg);
+  padding: 11px 0;
+  border-radius: 0;
+  outline: none;
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: 15px;
+  transition: border-color 0.2s ease;
+}
+
+.lp-field input:focus {
+  border-bottom-color: var(--lp-accent);
+}
+
+.lp-marquee {
+  overflow: hidden;
+  mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+}
+
+.lp-marquee-track {
+  display: flex;
+  width: max-content;
+  gap: 0;
+  animation: lp-marquee 28s linear infinite;
+}
+
+.lp-marquee-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 18px;
+  padding-right: 18px;
+  font-size: 12px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--lp-muted);
+  white-space: nowrap;
+}
+
+.lp-marquee-item::after {
+  content: "";
+  width: 5px;
+  height: 5px;
+  border-radius: 99px;
+  background: var(--lp-accent);
+  opacity: 0.8;
+}
+
+@keyframes lp-marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.lp-rule {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--lp-accent);
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+.lp-rule::before,
+.lp-rule::after {
+  content: "";
+  height: 1px;
+  flex: 1;
+  background: linear-gradient(90deg, var(--lp-accent), transparent);
+}
+
+.lp-rule::before {
+  background: linear-gradient(90deg, transparent, var(--lp-accent));
+  max-width: 42px;
+  flex: 0 0 42px;
+}
+
+.lp-index {
+  font-family: var(--lp-heading);
+  color: var(--lp-accent);
+  letter-spacing: -0.04em;
+  line-height: 1;
+}
+
+.lp-faq details {
+  border-top: 1px solid color-mix(in srgb, var(--lp-fg) 12%, transparent);
+  padding: 18px 0;
+}
+
+.lp-faq summary {
+  cursor: pointer;
+  list-style: none;
+  display: flex;
+  justify-content: space-between;
+  gap: 24px;
+  font-weight: 600;
+  font-size: 17px;
+}
+
+.lp-faq summary::-webkit-details-marker {
+  display: none;
+}
+
+.lp-faq summary::after {
+  content: "+";
+  color: var(--lp-accent);
+  font-family: var(--lp-heading);
+  font-size: 26px;
+  line-height: 1;
+  font-weight: 400;
+}
+
+.lp-faq details[open] summary::after {
+  content: "–";
+}
+
+.lp-wash {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+@media (max-width: 860px) {
+  .lp-split {
+    grid-template-columns: 1fr !important;
+    gap: 32px !important;
+  }
+
+  .lp-photo-shift {
+    display: none;
+  }
+}

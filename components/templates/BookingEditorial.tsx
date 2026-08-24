@@ -1,62 +1,118 @@
 import type { Project } from "@/lib/types";
-import { CtaButton, Eyebrow, Heading, LeadForm, LogoMark, PageFrame, Shell } from "./PageFrame";
+import {
+  CtaButton,
+  Eyebrow,
+  Faqs,
+  Heading,
+  LeadForm,
+  LogoMark,
+  PageFrame,
+  Shell,
+  TreatedPhoto,
+} from "./PageFrame";
 
 export function BookingEditorial({ project }: { project: Project }) {
   const { copy, photos } = project;
   const problems = copy.problems.filter(Boolean);
   const steps = copy.mechanismSteps.filter((step) => step.title);
   const faqs = copy.faqs.filter((item) => item.q);
+  const atmosphere = photos.hero || photos.portrait;
 
   return (
     <PageFrame project={project}>
-      <div style={{ background: "var(--lp-primary)", color: "#f6f3ec" }}>
+      <section
+        style={{
+          position: "relative",
+          minHeight: "100vh",
+          background: "var(--lp-primary)",
+          color: "#f6f3ec",
+          overflow: "hidden",
+        }}
+      >
+        {atmosphere ? (
+          <div className="lp-wash" style={{ right: "-8%", left: "36%", opacity: 0.38 }}>
+            <img
+              src={atmosphere}
+              alt=""
+              style={{
+                width: "100%",
+                height: "100%",
+                objectFit: "cover",
+                filter: "grayscale(0.55) contrast(1.15)",
+              }}
+            />
+            <div
+              style={{
+                position: "absolute",
+                inset: 0,
+                background:
+                  "linear-gradient(90deg, var(--lp-primary) 0%, color-mix(in srgb, var(--lp-primary) 55%, transparent) 48%, color-mix(in srgb, var(--lp-primary) 18%, transparent) 100%)",
+              }}
+            />
+          </div>
+        ) : null}
+        <div
+          className="lp-wash"
+          style={{
+            background:
+              "radial-gradient(circle at 18% 20%, color-mix(in srgb, var(--lp-accent) 16%, transparent), transparent 36%)",
+          }}
+        />
+
         <Shell>
           <div
             style={{
-              height: 88,
+              height: 92,
               display: "flex",
               alignItems: "center",
               justifyContent: "space-between",
-              borderBottom: "1px solid #ffffff24",
+              borderBottom: "1px solid #ffffff1f",
+              position: "relative",
             }}
           >
             <LogoMark project={project} />
-            <span style={{ fontSize: 11, letterSpacing: "0.14em", textTransform: "uppercase", color: "#c5c1b7" }}>
+            <span style={{ fontSize: 11, letterSpacing: "0.16em", textTransform: "uppercase", color: "#c5c1b7" }}>
               {copy.eyebrow}
             </span>
           </div>
-          <div style={{ padding: "88px 0 100px", maxWidth: 980 }}>
-            <Heading as="h1" size={86} style={{ color: "#f6f3ec" }}>
+          <div style={{ padding: "100px 0 120px", maxWidth: 860, position: "relative" }}>
+            <p
+              className="lp-index"
+              style={{ fontSize: 72, opacity: 0.18, margin: "0 0 12px", color: "var(--lp-accent)" }}
+            >
+              01
+            </p>
+            <Heading as="h1" size={88} style={{ color: "#f6f3ec", maxWidth: 920 }}>
               {copy.headline}
             </Heading>
-            <p style={{ maxWidth: 640, margin: "32px 0 0", fontSize: 19, lineHeight: 1.6, color: "#c9c4b8" }}>
+            <p style={{ maxWidth: 560, margin: "34px 0 0", fontSize: 19, lineHeight: 1.65, color: "#d0cbbf" }}>
               {copy.subheadline}
             </p>
-            <div style={{ marginTop: 36, display: "flex", gap: 18, alignItems: "center", flexWrap: "wrap" }}>
+            <div style={{ marginTop: 40, display: "flex", gap: 18, alignItems: "center", flexWrap: "wrap" }}>
               <CtaButton href={copy.ctaHref}>{copy.cta}</CtaButton>
               {copy.ctaSecondary ? <span style={{ color: "#b7b1a4", fontSize: 14 }}>{copy.ctaSecondary}</span> : null}
             </div>
           </div>
         </Shell>
-      </div>
+      </section>
 
-      <section style={{ padding: "92px 0" }}>
+      <section style={{ padding: "108px 0", position: "relative" }}>
         <Shell>
-          <div
-            className="lp-split"
-            style={{ display: "grid", gridTemplateColumns: "1fr 0.72fr", gap: 64, alignItems: "center" }}
-          >
+          <div className="lp-split" style={{ display: "grid", gridTemplateColumns: "1.05fr 0.8fr", gap: 80, alignItems: "center" }}>
             <div>
               <Eyebrow>Reconhecimento</Eyebrow>
-              <Heading size={52}>{copy.leadTitle}</Heading>
-              <ul style={{ listStyle: "none", padding: 0, margin: "36px 0 0", display: "grid", gap: 14 }}>
+              <Heading size={54} style={{ marginTop: 18 }}>
+                {copy.leadTitle}
+              </Heading>
+              <ul style={{ listStyle: "none", padding: 0, margin: "40px 0 0", display: "grid", gap: 0 }}>
                 {problems.map((item) => (
                   <li
                     key={item}
                     style={{
-                      paddingBottom: 14,
+                      padding: "16px 0",
                       borderBottom: "1px solid color-mix(in srgb, var(--lp-fg) 10%, transparent)",
-                      fontSize: 18,
+                      fontSize: 19,
+                      lineHeight: 1.4,
                     }}
                   >
                     {item}
@@ -64,60 +120,80 @@ export function BookingEditorial({ project }: { project: Project }) {
                 ))}
               </ul>
             </div>
-            {photos.portrait ? (
-              <img
-                src={photos.portrait}
-                alt=""
-                style={{
-                  width: "100%",
-                  aspectRatio: "4 / 5",
-                  objectFit: "cover",
-                  borderRadius: "var(--lp-radius)",
-                  filter: "grayscale(0.35) contrast(1.08)",
-                }}
-              />
-            ) : null}
+            {photos.portrait ? <TreatedPhoto src={photos.portrait} /> : null}
           </div>
         </Shell>
       </section>
 
       {copy.body ? (
-        <section style={{ padding: "0 0 92px" }}>
+        <section
+          style={{
+            padding: "100px 0",
+            background:
+              "linear-gradient(180deg, transparent, color-mix(in srgb, var(--lp-accent) 6%, var(--lp-surface)) 12%, var(--lp-surface))",
+          }}
+        >
           <Shell>
-            <div style={{ maxWidth: 760 }}>
-              <Heading size={46}>{copy.bodyTitle}</Heading>
-              <p style={{ fontSize: 19, lineHeight: 1.7, color: "var(--lp-muted)" }}>{copy.body}</p>
+            <div style={{ maxWidth: 780 }}>
+              <p className="lp-index" style={{ fontSize: 88, opacity: 0.12, margin: 0 }}>
+                “
+              </p>
+              <Heading size={48}>{copy.bodyTitle}</Heading>
+              <p style={{ fontSize: 20, lineHeight: 1.75, color: "var(--lp-muted)", marginTop: 24 }}>{copy.body}</p>
             </div>
           </Shell>
         </section>
       ) : null}
 
       {steps.length > 0 ? (
-        <section style={{ padding: "0 0 92px" }}>
+        <section style={{ padding: "108px 0" }}>
           <Shell>
             <Eyebrow>Como corre</Eyebrow>
-            <Heading size={50}>{copy.mechanismTitle}</Heading>
-            <div style={{ marginTop: 40, display: "grid", gap: 0 }}>
+            <Heading size={52} style={{ marginTop: 16 }}>
+              {copy.mechanismTitle}
+            </Heading>
+            <div style={{ marginTop: 56, display: "grid", gap: 0, position: "relative" }}>
+              <div
+                style={{
+                  position: "absolute",
+                  left: 23,
+                  top: 18,
+                  bottom: 18,
+                  width: 1,
+                  background: "linear-gradient(180deg, var(--lp-accent), transparent)",
+                }}
+              />
               {steps.map((step, index) => (
                 <div
                   key={step.title}
                   className="lp-split"
                   style={{
                     display: "grid",
-                    gridTemplateColumns: "90px 1fr",
+                    gridTemplateColumns: "72px 1fr",
                     gap: 28,
-                    padding: "28px 0",
-                    borderTop: "1px solid color-mix(in srgb, var(--lp-fg) 12%, transparent)",
+                    padding: "28px 0 36px",
                   }}
                 >
-                  <span style={{ fontFamily: "var(--lp-heading)", fontSize: 34, color: "var(--lp-accent)" }}>
+                  <span
+                    className="lp-index"
+                    style={{
+                      width: 46,
+                      height: 46,
+                      border: "1px solid var(--lp-accent)",
+                      display: "grid",
+                      placeItems: "center",
+                      background: "var(--lp-bg)",
+                      fontSize: 16,
+                      position: "relative",
+                    }}
+                  >
                     {String(index + 1).padStart(2, "0")}
                   </span>
                   <div>
-                    <h3 style={{ margin: "0 0 8px", fontSize: 26, fontFamily: "var(--lp-heading)", fontWeight: 500 }}>
+                    <h3 style={{ margin: "6px 0 10px", fontSize: 28, fontFamily: "var(--lp-heading)", fontWeight: 500 }}>
                       {step.title}
                     </h3>
-                    <p style={{ margin: 0, color: "var(--lp-muted)", lineHeight: 1.6 }}>{step.text}</p>
+                    <p style={{ margin: 0, color: "var(--lp-muted)", lineHeight: 1.65, maxWidth: 620 }}>{step.text}</p>
                   </div>
                 </div>
               ))}
@@ -126,21 +202,35 @@ export function BookingEditorial({ project }: { project: Project }) {
         </section>
       ) : null}
 
-      {(copy.notFor.length || copy.willGet.length) ? (
-        <section style={{ padding: "0 0 92px" }}>
+      {copy.notFor.length || copy.willGet.length ? (
+        <section style={{ padding: "0 0 108px" }}>
           <Shell>
-            <div className="lp-split" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
-              <div style={{ padding: "32px 28px", background: "var(--lp-surface)" }}>
-                <h3 style={{ margin: "0 0 14px", fontFamily: "var(--lp-heading)", fontSize: 28 }}>Não vais receber</h3>
-                <ul style={{ margin: 0, paddingLeft: 18, lineHeight: 1.85, color: "var(--lp-muted)" }}>
+            <div className="lp-split" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 0 }}>
+              <div
+                style={{
+                  padding: "40px 36px",
+                  background: "var(--lp-surface)",
+                  border: "1px solid color-mix(in srgb, var(--lp-fg) 8%, transparent)",
+                }}
+              >
+                <h3 style={{ margin: "0 0 16px", fontFamily: "var(--lp-heading)", fontSize: 30 }}>Não vais receber</h3>
+                <ul style={{ margin: 0, paddingLeft: 18, lineHeight: 1.9, color: "var(--lp-muted)" }}>
                   {copy.notFor.filter(Boolean).map((item) => (
                     <li key={item}>{item}</li>
                   ))}
                 </ul>
               </div>
-              <div style={{ padding: "32px 28px", background: "var(--lp-primary)", color: "#f6f3ec" }}>
-                <h3 style={{ margin: "0 0 14px", fontFamily: "var(--lp-heading)", fontSize: 28 }}>Vamos trabalhar</h3>
-                <ul style={{ margin: 0, paddingLeft: 18, lineHeight: 1.85 }}>
+              <div
+                style={{
+                  padding: "40px 36px",
+                  background: "var(--lp-primary)",
+                  color: "#f6f3ec",
+                  boxShadow: "0 24px 70px rgba(0,0,0,0.18)",
+                  transform: "translateY(-10px)",
+                }}
+              >
+                <h3 style={{ margin: "0 0 16px", fontFamily: "var(--lp-heading)", fontSize: 30 }}>Vamos trabalhar</h3>
+                <ul style={{ margin: 0, paddingLeft: 18, lineHeight: 1.9 }}>
                   {copy.willGet.filter(Boolean).map((item) => (
                     <li key={item}>{item}</li>
                   ))}
@@ -152,64 +242,61 @@ export function BookingEditorial({ project }: { project: Project }) {
       ) : null}
 
       {copy.guarantee ? (
-        <section style={{ padding: "0 0 92px" }}>
+        <section style={{ padding: "0 0 108px" }}>
           <Shell>
-            <p
+            <div
               style={{
-                maxWidth: 760,
-                margin: 0,
-                fontFamily: "var(--lp-heading)",
-                fontSize: "clamp(24px, 3.4vw, 36px)",
-                lineHeight: 1.25,
+                maxWidth: 820,
+                padding: "48px 8px 0",
+                borderTop: "1px solid var(--lp-accent)",
               }}
             >
-              {copy.guarantee}
-            </p>
+              <p
+                style={{
+                  margin: 0,
+                  fontFamily: "var(--lp-heading)",
+                  fontSize: "clamp(26px, 3.6vw, 40px)",
+                  lineHeight: 1.22,
+                }}
+              >
+                {copy.guarantee}
+              </p>
+            </div>
           </Shell>
         </section>
       ) : null}
 
       {faqs.length > 0 ? (
-        <section style={{ padding: "0 0 92px" }}>
+        <section style={{ padding: "0 0 108px" }}>
           <Shell>
-            <Heading size={44}>Antes de marcares</Heading>
+            <Heading size={46}>Antes de marcares</Heading>
             <div style={{ marginTop: 28 }}>
-              {faqs.map((item) => (
-                <details
-                  key={item.q}
-                  style={{
-                    padding: "16px 0",
-                    borderTop: "1px solid color-mix(in srgb, var(--lp-fg) 12%, transparent)",
-                  }}
-                >
-                  <summary style={{ cursor: "pointer", fontWeight: 600 }}>{item.q}</summary>
-                  <p style={{ margin: "10px 0 0", color: "var(--lp-muted)", lineHeight: 1.6 }}>{item.a}</p>
-                </details>
-              ))}
+              <Faqs items={faqs} />
             </div>
           </Shell>
         </section>
       ) : null}
 
-      <section style={{ padding: "0 0 110px" }} id="form">
+      <section
+        style={{
+          padding: "80px 0 120px",
+          background: "color-mix(in srgb, var(--lp-primary) 6%, var(--lp-bg))",
+        }}
+        id="form"
+      >
         <Shell>
-          <div
-            className="lp-split"
-            style={{ display: "grid", gridTemplateColumns: "1.1fr 0.8fr", gap: 48, alignItems: "start" }}
-          >
+          <div className="lp-split" style={{ display: "grid", gridTemplateColumns: "1.1fr 0.8fr", gap: 56, alignItems: "start" }}>
             <div>
-              <Heading size={50}>{copy.nextStep}</Heading>
-              <p style={{ color: "var(--lp-muted)" }}>{copy.legal}</p>
+              <Eyebrow>Próximo passo</Eyebrow>
+              <Heading size={50} style={{ marginTop: 16 }}>
+                {copy.nextStep}
+              </Heading>
+              <p style={{ color: "var(--lp-muted)", maxWidth: 460 }}>{copy.legal}</p>
             </div>
             <LeadForm project={project} />
           </div>
         </Shell>
       </section>
-      <style>{`
-        @media (max-width: 860px) {
-          .lp-split { grid-template-columns: 1fr !important; }
-        }
-      `}</style>
     </PageFrame>
   );
 }
