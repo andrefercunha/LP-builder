@@ -15,6 +15,7 @@ export function PageFrame({
   return (
     <div
       data-lp-root
+      data-template={project.template}
       style={
         {
           "--lp-bg": brand.background,

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { PAGE_TYPES, createProject } from "@/lib/defaults";
+import { LOOKS, PAGE_TYPES, createProject } from "@/lib/defaults";
 import { auditProject, qualityScore } from "@/lib/quality";
 import { loadProjects, resetSeeds, upsertProject } from "@/lib/store";
 import type { PageType, Project } from "@/lib/types";
@@ -75,7 +75,7 @@ export default function HomePage() {
                     <p className="mt-2 text-[13px] text-mist">{project.copy.headline}</p>
                   </div>
                   <p className="text-[13px] text-mist">
-                    {project.partner} · {PAGE_TYPES.find((item) => item.id === project.type)?.label}
+                    {project.partner} · {LOOKS.find((item) => item.id === project.template)?.label ?? project.type}
                   </p>
                   <p className="font-display text-[28px]">{score}</p>
                 </Link>

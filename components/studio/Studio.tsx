@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { renderPage } from "@/components/templates/render";
-import { PAGE_TYPES } from "@/lib/defaults";
+import { LOOKS, PAGE_TYPES } from "@/lib/defaults";
 import { downloadHtml, downloadJson } from "@/lib/export-html";
 import { FONT_CATALOG } from "@/lib/fonts";
 import { auditProject, qualityScore } from "@/lib/quality";
@@ -190,6 +190,20 @@ function TypeTab({
         >
           <p className="text-[15px]">{item.label}</p>
           <p className="mt-1 text-[13px] text-mist">{item.brief}</p>
+        </button>
+      ))}
+      <p className="pt-2 text-[11px] uppercase tracking-[0.16em] text-mist">Linguagem visual</p>
+      {LOOKS.filter((item) => item.type === project.type).map((item) => (
+        <button
+          key={item.id}
+          type="button"
+          onClick={() => onChange({ ...project, template: item.id })}
+          className={`border px-4 py-3 text-left ${
+            project.template === item.id ? "border-[#c4a574] bg-[#141816]" : "border-line"
+          }`}
+        >
+          <p className="text-[14px]">{item.label}</p>
+          <p className="mt-1 text-[12px] text-mist">{item.brief}</p>
         </button>
       ))}
     </div>

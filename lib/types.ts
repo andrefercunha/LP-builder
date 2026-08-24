@@ -2,8 +2,11 @@ export type PageType = "opt-in" | "sales" | "booking" | "thanks";
 
 export type TemplateId =
   | "opt-in-dense"
+  | "opt-in-light"
   | "sales-long"
+  | "sales-brutal"
   | "booking-editorial"
+  | "booking-letter"
   | "thanks-next";
 
 export type FontId =

@@ -3,7 +3,7 @@
 import { SEED_PROJECTS } from "./seeds";
 import type { Project } from "./types";
 
-const KEY = "lp-builder.projects.v1";
+const KEY = "lp-builder.projects.v2";
 
 function canUseStorage() {
   return typeof window !== "undefined";

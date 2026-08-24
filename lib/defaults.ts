@@ -20,7 +20,7 @@ export const PAGE_TYPES: Array<{
   },
   {
     id: "booking",
-    template: "booking-editorial",
+    template: "booking-letter",
     label: "Marcação / Sessão",
     brief: "Uma conversa com destino único. Editorial, honesta, sem teatro.",
   },
@@ -30,6 +30,21 @@ export const PAGE_TYPES: Array<{
     label: "Obrigado",
     brief: "Confirmação + próximo passo imediato. Sem deixar a pessoa à espera.",
   },
+];
+
+export const LOOKS: Array<{
+  id: TemplateId;
+  type: PageType;
+  label: string;
+  brief: string;
+}> = [
+  { id: "opt-in-dense", type: "opt-in", label: "Cartaz", brief: "Escuro, denso, formulário à direita. Evento / VSL." },
+  { id: "opt-in-light", type: "opt-in", label: "Revista", brief: "Claro, foto a ocupar metade, ar de capa." },
+  { id: "sales-long", type: "sales", label: "Dossier", brief: "Sistema editorial: capítulos, prova e oferta." },
+  { id: "sales-brutal", type: "sales", label: "Manifesto", brief: "Contraste alto, tipo enorme, quase sem decoração." },
+  { id: "booking-letter", type: "booking", label: "Carta", brief: "Papel, íntima, uma coluna. Sem herói cinematográfico." },
+  { id: "booking-editorial", type: "booking", label: "Cinemática", brief: "Herói escuro, wash de foto, sessão com peso." },
+  { id: "thanks-next", type: "thanks", label: "Recibo", brief: "Confirmação centrada e próximo passo." },
 ];
 
 export function emptyCopy(): PageCopy {
