@@ -237,8 +237,8 @@ export const SEED_PROJECTS: Project[] = [
       foreground: "#101513",
       muted: "#59615c",
       surface: "#fbfcf8",
-      headingFont: "instrument-serif",
-      bodyFont: "libre-franklin",
+      headingFont: "syne",
+      bodyFont: "outfit",
       radius: "none",
     },
     photos: {

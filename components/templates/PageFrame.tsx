@@ -132,7 +132,7 @@ export function Shell({
   wide?: boolean;
 }) {
   return (
-    <div style={{ width: wide ? "min(1280px, calc(100% - 36px))" : "min(1120px, calc(100% - 40px))", margin: "0 auto" }}>
+    <div style={{ width: wide ? "min(1360px, calc(100% - 40px))" : "min(1120px, calc(100% - 40px))", margin: "0 auto" }}>
       {children}
     </div>
   );
@@ -146,6 +146,13 @@ export function LogoMark({ project, invert }: { project: Project; invert?: boole
         alt={project.brand.name}
         style={{ height: 28, width: "auto", filter: invert ? "brightness(10)" : undefined }}
       />
+    );
+  }
+  if (/^re\.?dna$/i.test(project.brand.name)) {
+    return (
+      <span className="lp-mark">
+        RE<span>·</span>DNA
+      </span>
     );
   }
   return (
