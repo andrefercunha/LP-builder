@@ -408,10 +408,10 @@ export const TEMPLATE_CREATION: Record<TemplateId, TemplateCreation> = {
   },
   "sales-long": {
     wantsForm: true,
-    photoHint: "Herói com atmosfera + retrato do parceiro. As duas âncoras da página.",
-    heroLabel: "Herói",
-    portraitLabel: "Retrato",
-    intro: "Dossier: o fluxo completo. Não deixes secções vazias a meio do argumento.",
+    photoHint: "O Dossier vive de tipo. Só mete foto se for real — retrato do parceiro. Stock é pior do que nenhuma.",
+    heroLabel: "Herói (opcional)",
+    portraitLabel: "Retrato (só se for real)",
+    intro: "Dossier: um documento de reunião. Argumento, âmbito e investimento. Sem herói de stock.",
     fields: [
       EYEBROW,
       HERO,

@@ -272,6 +272,9 @@ ${list(copy.offerBullets)}
 ${copy.proofQuote}
 ${copy.proofName ? `Nome: ${copy.proofName}` : ""}
 
+## Levas
+${list(copy.willGet ?? [])}
+
 ## Não é para
 ${list(copy.notFor)}
 

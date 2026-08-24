@@ -16,7 +16,7 @@ export const PAGE_TYPES: Array<{
     id: "sales",
     template: "sales-long",
     label: "Página de vendas",
-    brief: "Fluxo completo: problema, mecanismo, oferta, prova, garantia, FAQ.",
+    brief: "Documento de reunião: argumento, âmbito, investimento.",
   },
   {
     id: "booking",
@@ -47,7 +47,7 @@ export const LOOKS: Array<{
 }> = [
   { id: "opt-in-dense", type: "opt-in", label: "Cartaz", brief: "Escuro, denso, formulário à direita. Evento / VSL." },
   { id: "opt-in-light", type: "opt-in", label: "Revista", brief: "Claro, foto a ocupar metade, ar de capa." },
-  { id: "sales-long", type: "sales", label: "Dossier", brief: "Sistema editorial: capítulos, prova e oferta." },
+  { id: "sales-long", type: "sales", label: "Dossier", brief: "Documento de reunião: capítulos, âmbito e preço." },
   { id: "sales-brutal", type: "sales", label: "Manifesto", brief: "Contraste alto, tipo enorme, quase sem decoração." },
   { id: "booking-letter", type: "booking", label: "Carta", brief: "Papel, íntima, uma coluna. Sem herói cinematográfico." },
   { id: "booking-editorial", type: "booking", label: "Cinemática", brief: "Herói escuro, wash de foto, sessão com peso." },

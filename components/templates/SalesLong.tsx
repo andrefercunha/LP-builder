@@ -1,372 +1,302 @@
 import type { Project } from "@/lib/types";
 import {
-  CtaButton,
-  Eyebrow,
   Faqs,
   Heading,
   LeadForm,
   LogoMark,
   PageFrame,
   Shell,
-  TreatedPhoto,
 } from "./PageFrame";
 
+function isStockPhoto(src?: string) {
+  if (!src) return true;
+  return /unsplash\.com|images\.unsplash|pexels\.com|pixabay\.com/.test(src);
+}
+
+function overlap(item: string, haystack: string) {
+  const needle = item.trim().toLowerCase();
+  return needle.length > 24 && haystack.toLowerCase().includes(needle);
+}
+
+function splitInvestment(text: string) {
+  const trimmed = text.trim();
+  const first = trimmed.match(/^[^.]+(?:\.)?/)?.[0] ?? trimmed;
+  const notes = trimmed.slice(first.length).trim();
+  const [primary, alternate] = first.split(/,\s*(?=ou\b)/i);
+  return {
+    primary: (primary ?? first).replace(/\.$/, "").trim(),
+    alternate: (alternate ?? "").replace(/\.$/, "").trim(),
+    notes,
+  };
+}
+
+function Chapter({
+  n,
+  kicker,
+  title,
+  children,
+}: {
+  n: string;
+  kicker?: string;
+  title?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <section className="lp-chapter">
+      <Shell>
+        <div className="lp-chapter-head">
+          <span className="lp-chapter-n">{n}</span>
+          <div>
+            {kicker ? <p className="lp-rule">{kicker}</p> : null}
+            {title ? (
+              <Heading size={46} style={{ marginTop: kicker ? 12 : 0 }}>
+                {title}
+              </Heading>
+            ) : null}
+          </div>
+        </div>
+        <div className="lp-chapter-body">{children}</div>
+      </Shell>
+    </section>
+  );
+}
+
 export function SalesLong({ project }: { project: Project }) {
-  const { copy, photos } = project;
-  const problems = copy.problems.filter(Boolean);
+  const { copy, photos, brand } = project;
+  const bodyText = copy.body.trim();
+  const bodyParagraphs = bodyText.split(/\n\n+/).filter(Boolean);
+  const problems = copy.problems.filter((item) => item && !overlap(item, bodyText));
   const steps = copy.mechanismSteps.filter((step) => step.title);
-  const bullets = copy.offerBullets.filter(Boolean);
+  const willGet = copy.willGet.filter(Boolean);
+  const notFor = copy.notFor.filter(Boolean);
+  const willGive = (copy.willGive ?? []).filter(Boolean);
+  const hasScope = willGet.length + notFor.length + willGive.length > 0;
+  const bullets = copy.offerBullets.filter((item) => {
+    if (!item) return false;
+    if (!hasScope) return true;
+    return !willGet.some((entry) => overlap(item, entry) || overlap(entry, item));
+  });
   const proof = copy.proof.filter((item) => item.quote);
   const faqs = copy.faqs.filter((item) => item.q);
-  const atmosphere = photos.hero;
+  const investment = copy.investment?.trim() ? splitInvestment(copy.investment) : null;
+  const portrait = isStockPhoto(photos.portrait) ? "" : photos.portrait;
+  const showHeaderCta = Boolean(copy.ctaSecondary);
+
+  let chapter = 1;
+  const nextChapter = () => String(chapter++).padStart(2, "0");
+  const coverN = nextChapter();
 
   return (
     <PageFrame project={project}>
-      <header style={{ position: "relative", background: "var(--lp-primary)", color: "#f7f8f3", overflow: "hidden" }}>
-        {atmosphere ? (
-          <div className="lp-wash" style={{ opacity: 0.2 }}>
-            <img src={atmosphere} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", filter: "grayscale(0.5)" }} />
-            <div style={{ position: "absolute", inset: 0, background: "linear-gradient(180deg, var(--lp-primary), transparent 40%, var(--lp-primary))" }} />
-          </div>
-        ) : null}
-        <div
-          className="lp-wash"
-          style={{
-            background:
-              "radial-gradient(circle at 85% 15%, color-mix(in srgb, var(--lp-accent) 22%, transparent), transparent 32%)",
-          }}
-        />
-        <div style={{ padding: "0 0 96px", position: "relative" }}>
+      <div className="lp-doc">
+        <header className="lp-masthead">
           <Shell>
-            <div
-              style={{
-                height: 88,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                borderBottom: "1px solid #ffffff22",
-              }}
-            >
+            <div className="lp-masthead-row">
               <LogoMark project={project} />
-              <CtaButton href={copy.ctaHref}>{copy.cta}</CtaButton>
-            </div>
-            <div
-              className="lp-split"
-              style={{
-                display: "grid",
-                gridTemplateColumns: "minmax(0, 1.15fr) minmax(260px, 0.72fr)",
-                gap: 64,
-                paddingTop: 80,
-                alignItems: "end",
-              }}
-            >
-              <div>
-                <Eyebrow>{copy.eyebrow}</Eyebrow>
-                <Heading as="h1" size={86} style={{ color: "#f7f8f3", marginTop: 18 }}>
-                  {copy.headline}
-                </Heading>
-                <p style={{ maxWidth: 600, margin: "28px 0 0", color: "#c5c9c4", fontSize: 18, lineHeight: 1.65 }}>
-                  {copy.subheadline}
-                </p>
-                <div style={{ marginTop: 36, display: "flex", gap: 16, alignItems: "center", flexWrap: "wrap" }}>
-                  <CtaButton href={copy.ctaHref}>{copy.cta}</CtaButton>
-                  {copy.ctaSecondary ? <span style={{ color: "#9aa19b", fontSize: 13 }}>{copy.ctaSecondary}</span> : null}
-                </div>
-              </div>
-              {photos.portrait || photos.hero ? (
-                <TreatedPhoto src={photos.portrait || photos.hero!} />
-              ) : null}
+              <p className="lp-folio">
+                {copy.offerName || brand.name}
+                <span>Documento de reunião</span>
+              </p>
             </div>
           </Shell>
-        </div>
-      </header>
+        </header>
 
-      {problems.length > 0 ? (
-        <section style={{ padding: "108px 0" }}>
+        <section className="lp-cover">
           <Shell>
-            <Eyebrow>Reconhecimento</Eyebrow>
-            <Heading size={58} style={{ marginTop: 16 }}>
-              {copy.leadTitle || "Isto é para ti se"}
-            </Heading>
-            <ol style={{ listStyle: "none", padding: 0, margin: "52px 0 0" }}>
+            <div className="lp-cover-grid">
+              <div>
+                <p className="lp-stamp">{copy.eyebrow || "Documento"}</p>
+                <p className="lp-chapter-n lp-cover-n">{coverN}</p>
+                <Heading as="h1" size={78} style={{ marginTop: 18, maxWidth: "15ch" }}>
+                  {copy.headline}
+                </Heading>
+                <p className="lp-lead">{copy.subheadline}</p>
+                {copy.audience ? <p className="lp-use">{copy.audience}</p> : null}
+                {showHeaderCta ? (
+                  <p className="lp-use" style={{ marginTop: 28 }}>
+                    <a href={copy.ctaHref || "#form"}>{copy.cta}</a>
+                    {copy.ctaSecondary ? ` · ${copy.ctaSecondary}` : ""}
+                  </p>
+                ) : null}
+              </div>
+              <aside className="lp-cover-meta">
+                <p>
+                  <span>Marca</span>
+                  {brand.name}
+                </p>
+                <p>
+                  <span>Oferta</span>
+                  {copy.offerName || "—"}
+                </p>
+                {copy.audience ? (
+                  <p>
+                    <span>Uso</span>
+                    Reunião. Não é página de tráfego.
+                  </p>
+                ) : null}
+              </aside>
+            </div>
+          </Shell>
+        </section>
+
+        {bodyParagraphs.length > 0 ? (
+          <Chapter n={nextChapter()} kicker="Argumento" title={copy.bodyTitle || copy.leadTitle}>
+            {bodyParagraphs[0] ? <p className="lp-pull">{bodyParagraphs[0]}</p> : null}
+            <div className="lp-prose">
+              {bodyParagraphs.slice(1).map((paragraph) => (
+                <p key={paragraph.slice(0, 48)}>{paragraph}</p>
+              ))}
+            </div>
+          </Chapter>
+        ) : problems.length > 0 ? (
+          <Chapter n={nextChapter()} kicker="Reconhecimento" title={copy.leadTitle || "Isto é para ti se"}>
+            <ol className="lp-points">
               {problems.map((item, index) => (
-                <li
-                  key={item}
-                  style={{
-                    display: "grid",
-                    gridTemplateColumns: "88px 1fr",
-                    gap: 20,
-                    padding: "24px 0",
-                    borderTop: "1px solid color-mix(in srgb, var(--lp-fg) 12%, transparent)",
-                  }}
-                >
-                  <span className="lp-index" style={{ fontSize: 34 }}>
-                    {String(index + 1).padStart(2, "0")}
-                  </span>
-                  <p style={{ margin: "8px 0 0", fontSize: 22, lineHeight: 1.4 }}>{item}</p>
+                <li key={item}>
+                  <span>{String(index + 1).padStart(2, "0")}</span>
+                  <p>{item}</p>
                 </li>
               ))}
             </ol>
-          </Shell>
-        </section>
-      ) : null}
+          </Chapter>
+        ) : null}
 
-      {copy.body ? (
-        <section
-          style={{
-            padding: "108px 0",
-            background: "var(--lp-surface)",
-            position: "relative",
-            overflow: "hidden",
-          }}
-        >
-          <p
-            className="lp-index"
-            style={{
-              position: "absolute",
-              left: "-2%",
-              top: "-6%",
-              fontSize: "28vw",
-              opacity: 0.05,
-              margin: 0,
-              pointerEvents: "none",
-            }}
-          >
-            02
-          </p>
-          <Shell>
-            <div className="lp-split" style={{ display: "grid", gridTemplateColumns: "0.9fr 1.1fr", gap: 72 }}>
-              <Heading size={54}>{copy.bodyTitle}</Heading>
-              <div style={{ display: "grid", gap: 20, maxWidth: 640 }}>
-                {copy.body.split(/\n\n+/).map((paragraph) => (
-                  <p key={paragraph.slice(0, 48)} style={{ margin: 0, fontSize: 20, lineHeight: 1.75, color: "var(--lp-muted)" }}>
-                    {paragraph}
-                  </p>
-                ))}
-              </div>
-            </div>
-          </Shell>
-        </section>
-      ) : null}
+        {problems.length > 0 && bodyParagraphs.length > 0 ? (
+          <Chapter n={nextChapter()} kicker="Reconhecimento" title={copy.leadTitle}>
+            <ol className="lp-points">
+              {problems.map((item, index) => (
+                <li key={item}>
+                  <span>{String(index + 1).padStart(2, "0")}</span>
+                  <p>{item}</p>
+                </li>
+              ))}
+            </ol>
+          </Chapter>
+        ) : null}
 
-      {steps.length > 0 ? (
-        <section style={{ padding: "108px 0" }}>
-          <Shell>
-            <Eyebrow>Mecanismo</Eyebrow>
-            <Heading size={58} style={{ marginTop: 16 }}>
-              {copy.mechanismTitle || "Como se chega lá"}
-            </Heading>
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
-                gap: 0,
-                marginTop: 56,
-                borderTop: "1px solid color-mix(in srgb, var(--lp-fg) 12%, transparent)",
-              }}
-            >
+        {steps.length > 0 ? (
+          <Chapter n={nextChapter()} kicker="Mecanismo" title={copy.mechanismTitle || "Como se chega lá"}>
+            <div className="lp-spine">
               {steps.map((step, index) => (
-                <article
-                  key={step.title}
-                  style={{
-                    padding: "28px 24px 8px 0",
-                    borderRight: index === steps.length - 1 ? 0 : "1px solid color-mix(in srgb, var(--lp-fg) 10%, transparent)",
-                  }}
-                >
-                  <p className="lp-index" style={{ fontSize: 42, margin: "0 0 18px" }}>
-                    {String(index + 1).padStart(2, "0")}
-                  </p>
-                  <h3 style={{ margin: "0 0 12px", fontFamily: "var(--lp-heading)", fontSize: 28, fontWeight: 500 }}>
-                    {step.title}
-                  </h3>
-                  <p style={{ margin: 0, color: "var(--lp-muted)", lineHeight: 1.65 }}>{step.text}</p>
+                <article key={step.title}>
+                  <p className="lp-spine-n">{String(index + 1).padStart(2, "0")}</p>
+                  <h3>{step.title}</h3>
+                  <p>{step.text}</p>
                 </article>
               ))}
             </div>
-          </Shell>
-        </section>
-      ) : null}
+          </Chapter>
+        ) : null}
 
-      <section
-        style={{
-          padding: "108px 0",
-          background: "var(--lp-primary)",
-          color: "#f7f8f3",
-          position: "relative",
-          overflow: "hidden",
-        }}
-      >
-        <div
-          className="lp-wash"
-          style={{
-            background:
-              "radial-gradient(circle at 20% 80%, color-mix(in srgb, var(--lp-accent) 20%, transparent), transparent 30%)",
-          }}
-        />
-        <Shell>
-          <div style={{ position: "relative" }}>
-            <Eyebrow>{copy.offerTitle || "A oferta"}</Eyebrow>
-            <Heading size={68} style={{ color: "#f7f8f3", marginTop: 16 }}>
-              {copy.offerName}
-            </Heading>
-            <ul style={{ padding: 0, margin: "44px 0 0", listStyle: "none", display: "grid", gap: 0, maxWidth: 700 }}>
-              {bullets.map((item) => (
-                <li
-                  key={item}
-                  style={{
-                    padding: "16px 0",
-                    borderBottom: "1px solid #ffffff22",
-                    fontSize: 19,
-                  }}
-                >
-                  {item}
-                </li>
-              ))}
-            </ul>
-            {copy.bonuses.filter(Boolean).length > 0 ? (
-              <p style={{ margin: "28px 0 0", color: "#c5c9c4" }}>
-                Inclui ainda: {copy.bonuses.filter(Boolean).join(" · ")}
-              </p>
+        {hasScope || bullets.length > 0 ? (
+          <Chapter n={nextChapter()} kicker="Âmbito" title={copy.offerTitle || copy.offerName || "O que entra"}>
+            {bullets.length > 0 && hasScope ? (
+              <p className="lp-summary">{bullets[0]}</p>
             ) : null}
-          </div>
-        </Shell>
-      </section>
+            {hasScope ? (
+              <div
+                className="lp-ledger"
+                data-cols={1 + (notFor.length ? 1 : 0) + (willGive.length ? 1 : 0)}
+              >
+                <div>
+                  <h3>Levas</h3>
+                  <ul>
+                    {willGet.map((item) => (
+                      <li key={item}>{item}</li>
+                    ))}
+                  </ul>
+                </div>
+                {notFor.length > 0 ? (
+                  <div>
+                    <h3>Não levas</h3>
+                    <ul>
+                      {notFor.map((item) => (
+                        <li key={item}>{item}</li>
+                      ))}
+                    </ul>
+                  </div>
+                ) : null}
+                {willGive.length > 0 ? (
+                  <div>
+                    <h3>O que é teu</h3>
+                    <ul>
+                      {willGive.map((item) => (
+                        <li key={item}>{item}</li>
+                      ))}
+                    </ul>
+                  </div>
+                ) : null}
+              </div>
+            ) : (
+              <ul className="lp-plain">
+                {bullets.map((item) => (
+                  <li key={item}>{item}</li>
+                ))}
+              </ul>
+            )}
+          </Chapter>
+        ) : null}
 
-      {proof.length > 0 ? (
-        <section style={{ padding: "108px 0" }}>
-          <Shell>
-            <Eyebrow>Prova</Eyebrow>
-            <div style={{ display: "grid", gap: 64, marginTop: 28 }}>
+        {copy.guarantee ? (
+          <Chapter n={nextChapter()} kicker={copy.guaranteeTitle || "Risco"} title="O que fica garantido">
+            <blockquote className="lp-guarantee">{copy.guarantee}</blockquote>
+          </Chapter>
+        ) : null}
+
+        {copy.authority ? (
+          <Chapter n={nextChapter()} kicker="Autoridade" title="Quem faz este trabalho">
+            <div className="lp-authority">
+              {portrait ? <img src={portrait} alt="" /> : null}
+              <div>
+                <p>{copy.authority}</p>
+                <cite>{brand.name}</cite>
+              </div>
+            </div>
+          </Chapter>
+        ) : null}
+
+        {proof.length > 0 ? (
+          <Chapter n={nextChapter()} kicker="Prova">
+            <div className="lp-proofs">
               {proof.map((item) => (
-                <blockquote key={item.quote} style={{ margin: 0, maxWidth: 900, position: "relative" }}>
-                  <span className="lp-index" style={{ fontSize: 96, opacity: 0.16, position: "absolute", top: -36, left: -8 }}>
-                    “
-                  </span>
-                  <p
-                    style={{
-                      margin: 0,
-                      fontFamily: "var(--lp-heading)",
-                      fontSize: "clamp(28px, 4vw, 44px)",
-                      lineHeight: 1.18,
-                      position: "relative",
-                    }}
-                  >
-                    {item.quote}
-                  </p>
-                  <cite
-                    style={{
-                      display: "block",
-                      marginTop: 18,
-                      fontStyle: "normal",
-                      letterSpacing: "0.08em",
-                      textTransform: "uppercase",
-                      fontSize: 12,
-                      color: "var(--lp-muted)",
-                    }}
-                  >
+                <blockquote key={item.quote}>
+                  <p>“{item.quote}”</p>
+                  <cite>
                     {item.name}
                     {item.role ? ` · ${item.role}` : ""}
                   </cite>
                 </blockquote>
               ))}
             </div>
-          </Shell>
-        </section>
-      ) : null}
+          </Chapter>
+        ) : null}
 
-      {copy.guarantee ? (
-        <section style={{ padding: "0 0 108px" }}>
-          <Shell>
-            <div
-              style={{
-                maxWidth: 840,
-                padding: "48px 44px",
-                border: "1px solid var(--lp-fg)",
-                boxShadow: "12px 12px 0 color-mix(in srgb, var(--lp-accent) 35%, transparent)",
-              }}
-            >
-              <Eyebrow>{copy.guaranteeTitle || "Risco"}</Eyebrow>
-              <p style={{ margin: "16px 0 0", fontSize: 22, lineHeight: 1.5 }}>{copy.guarantee}</p>
-            </div>
-          </Shell>
-        </section>
-      ) : null}
+        {faqs.length > 0 ? (
+          <Chapter n={nextChapter()} kicker="Antes de avançares">
+            <Faqs items={faqs} />
+          </Chapter>
+        ) : null}
 
-      {copy.notFor.length || copy.willGet.length || copy.willGive?.length ? (
-        <section style={{ padding: "0 0 108px" }}>
+        <section className="lp-close">
           <Shell>
-            <div
-              className="lp-split"
-              style={{ display: "grid", gridTemplateColumns: copy.willGive?.length ? "1fr 1fr 1fr" : "1fr 1fr", gap: 0 }}
-            >
-              <div style={{ padding: "36px 28px", background: "var(--lp-primary)", color: "#f7f8f3" }}>
-                <h3 style={{ margin: "0 0 16px", fontFamily: "var(--lp-heading)", fontSize: 28 }}>Levas</h3>
-                <ul style={{ margin: 0, paddingLeft: 18, lineHeight: 1.75 }}>
-                  {copy.willGet.filter(Boolean).map((item) => (
-                    <li key={item}>{item}</li>
-                  ))}
-                </ul>
-              </div>
-              <div style={{ padding: "36px 28px", background: "var(--lp-surface)" }}>
-                <h3 style={{ margin: "0 0 16px", fontFamily: "var(--lp-heading)", fontSize: 28 }}>Não levas</h3>
-                <ul style={{ margin: 0, paddingLeft: 18, color: "var(--lp-muted)", lineHeight: 1.75 }}>
-                  {copy.notFor.filter(Boolean).map((item) => (
-                    <li key={item}>{item}</li>
-                  ))}
-                </ul>
-              </div>
-              {copy.willGive?.filter(Boolean).length ? (
-                <div style={{ padding: "36px 28px", background: "var(--lp-surface)", borderLeft: "1px solid color-mix(in srgb, var(--lp-fg) 10%, transparent)" }}>
-                  <h3 style={{ margin: "0 0 16px", fontFamily: "var(--lp-heading)", fontSize: 28 }}>O que é teu</h3>
-                  <ul style={{ margin: 0, paddingLeft: 18, color: "var(--lp-muted)", lineHeight: 1.75 }}>
-                    {copy.willGive.filter(Boolean).map((item) => (
-                      <li key={item}>{item}</li>
-                    ))}
-                  </ul>
+            <div className="lp-close-inner">
+              <p className="lp-stamp invert">Investimento e adjudicação</p>
+              {investment ? (
+                <div className="lp-price">
+                  <p className="lp-price-main">{investment.primary}</p>
+                  {investment.alternate ? <p className="lp-price-alt">{investment.alternate}</p> : null}
+                  {investment.notes ? <p className="lp-price-notes">{investment.notes}</p> : null}
                 </div>
               ) : null}
+              <Heading size={36} style={{ color: "#f4f5f0", marginTop: 8, maxWidth: 620 }}>
+                {copy.nextStep}
+              </Heading>
+              <LeadForm project={project} />
+              <p className="lp-legal">{copy.legal}</p>
             </div>
           </Shell>
         </section>
-      ) : null}
-
-      {faqs.length > 0 ? (
-        <section style={{ padding: "0 0 108px" }}>
-          <Shell>
-            <Heading size={48}>Antes de avançares</Heading>
-            <div style={{ marginTop: 32 }}>
-              <Faqs items={faqs} />
-            </div>
-          </Shell>
-        </section>
-      ) : null}
-
-      {copy.authority ? (
-        <section style={{ padding: "0 0 108px" }}>
-          <Shell>
-            <Eyebrow>Quem faz este trabalho</Eyebrow>
-            <p style={{ margin: "20px 0 0", maxWidth: 760, fontSize: 20, lineHeight: 1.7, color: "var(--lp-muted)" }}>
-              {copy.authority}
-            </p>
-          </Shell>
-        </section>
-      ) : null}
-
-      <section style={{ padding: "0 0 120px" }}>
-        <Shell>
-          <div style={{ display: "grid", gap: 28, maxWidth: 640 }}>
-            <Eyebrow>Começar</Eyebrow>
-            {copy.investment ? (
-              <p style={{ margin: 0, fontSize: 22, lineHeight: 1.55 }}>{copy.investment}</p>
-            ) : null}
-            <Heading size={40} style={{ lineHeight: 1.2 }}>
-              {copy.nextStep}
-            </Heading>
-            <LeadForm project={project} />
-            <p style={{ color: "var(--lp-muted)", lineHeight: 1.65, margin: 0 }}>{copy.legal}</p>
-          </div>
-        </Shell>
-      </section>
+      </div>
     </PageFrame>
   );
 }
