@@ -3,15 +3,18 @@
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { renderPage } from "@/components/templates/render";
+import { SEED_PROJECTS } from "@/lib/seeds";
 import { getProject } from "@/lib/store";
 import type { Project } from "@/lib/types";
 
 export default function PreviewPage() {
   const params = useParams<{ id: string }>();
-  const [project, setProject] = useState<Project | null>(null);
+  const [project, setProject] = useState<Project | null>(
+    () => SEED_PROJECTS.find((item) => item.id === params.id) ?? null,
+  );
 
   useEffect(() => {
-    setProject(getProject(params.id) ?? null);
+    setProject(getProject(params.id) ?? SEED_PROJECTS.find((item) => item.id === params.id) ?? null);
   }, [params.id]);
 
   if (!project) {

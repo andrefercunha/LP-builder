@@ -45,7 +45,7 @@ export function deleteProject(id: string) {
 }
 
 export function getProject(id: string) {
-  return loadProjects().find((item) => item.id === id);
+  return loadProjects().find((item) => item.id === id) ?? SEED_PROJECTS.find((item) => item.id === id);
 }
 
 export function resetSeeds() {
