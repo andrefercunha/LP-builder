@@ -110,7 +110,7 @@ export function Studio({ id }: { id: string }) {
         <div className="flex items-center justify-between border-b border-line px-5 py-3 text-[11px] uppercase tracking-[0.14em] text-mist">
           <span>Pré-visualização</span>
           <div className="flex gap-3">
-            <Link href={`/preview/${project.id}`} target="_blank">
+            <Link href={`/preview/${project.id}`} target="_blank" onClick={save}>
               Abrir página
             </Link>
             <button type="button" onClick={() => downloadJson(project)}>
