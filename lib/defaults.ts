@@ -32,6 +32,13 @@ export const PAGE_TYPES: Array<{
   },
 ];
 
+export const DEFAULT_CTA: Record<PageType, string> = {
+  "opt-in": "Quero o meu lugar",
+  sales: "Quero começar",
+  booking: "Marcar a conversa",
+  thanks: "Ir para o próximo passo",
+};
+
 export const LOOKS: Array<{
   id: TemplateId;
   type: PageType;

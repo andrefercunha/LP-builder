@@ -1,27 +1,26 @@
 "use client";
 
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
-import { LOOKS, PAGE_TYPES, createProject } from "@/lib/defaults";
+import { CreateWizard } from "@/components/studio/CreateWizard";
+import { LOOKS, PAGE_TYPES } from "@/lib/defaults";
 import { auditProject, qualityScore } from "@/lib/quality";
 import { loadProjects, resetSeeds, upsertProject } from "@/lib/store";
 import type { PageType, Project } from "@/lib/types";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 
 export default function HomePage() {
   const router = useRouter();
   const [projects, setProjects] = useState<Project[]>([]);
+  const [wizard, setWizard] = useState<{ type?: PageType; sourceId?: string } | null>(null);
 
   useEffect(() => {
     setProjects(loadProjects());
   }, []);
 
-  function create(type: PageType) {
-    const project = createProject({
-      type,
-      name: `Nova ${PAGE_TYPES.find((item) => item.id === type)?.label.toLowerCase()}`,
-    });
+  function openCreated(project: Project) {
     upsertProject(project);
+    setProjects(loadProjects());
     router.push(`/studio/${project.id}`);
   }
 
@@ -32,7 +31,7 @@ export default function HomePage() {
           <div>
             <p className="text-[11px] uppercase tracking-[0.18em] text-mist">REDNA · Estúdio LP</p>
             <h1 className="mt-3 max-w-3xl font-display text-[clamp(42px,7vw,78px)] leading-[0.92]">
-              Entregas marca, fotos e copy. Sai uma página que se pode mostrar.
+              Tipo, linguagem, briefing. A página começa preenchida, não vazia.
             </h1>
           </div>
           <button
@@ -49,7 +48,7 @@ export default function HomePage() {
             <button
               key={item.id}
               type="button"
-              onClick={() => create(item.id)}
+              onClick={() => setWizard({ type: item.id })}
               className="border border-line p-5 text-left hover:border-[#c4a574]"
             >
               <p className="text-[11px] uppercase tracking-[0.16em] text-[#c4a574]">Nova</p>
@@ -65,25 +64,43 @@ export default function HomePage() {
             {projects.map((project) => {
               const score = qualityScore(auditProject(project));
               return (
-                <Link
+                <div
                   key={project.id}
-                  href={`/studio/${project.id}`}
-                  className="grid gap-2 border-b border-line py-5 md:grid-cols-[1.2fr_0.7fr_80px] md:items-end"
+                  className="grid gap-3 border-b border-line py-5 md:grid-cols-[1.2fr_0.7fr_80px_auto] md:items-end"
                 >
-                  <div>
+                  <Link href={`/studio/${project.id}`}>
                     <p className="font-display text-[34px] leading-none">{project.name}</p>
                     <p className="mt-2 text-[13px] text-mist">{project.copy.headline}</p>
-                  </div>
-                  <p className="text-[13px] text-mist">
+                  </Link>
+                  <Link href={`/studio/${project.id}`} className="text-[13px] text-mist">
                     {project.partner} · {LOOKS.find((item) => item.id === project.template)?.label ?? project.type}
-                  </p>
-                  <p className="font-display text-[28px]">{score}</p>
-                </Link>
+                  </Link>
+                  <Link href={`/studio/${project.id}`} className="font-display text-[28px]">
+                    {score}
+                  </Link>
+                  <button
+                    type="button"
+                    onClick={() => setWizard({ sourceId: project.id })}
+                    className="justify-self-start text-[12px] text-[#c4a574] md:justify-self-end"
+                  >
+                    Nova desta marca
+                  </button>
+                </div>
               );
             })}
           </div>
         </section>
       </div>
+
+      {wizard ? (
+        <CreateWizard
+          projects={projects}
+          initialType={wizard.type}
+          initialSourceId={wizard.sourceId}
+          onClose={() => setWizard(null)}
+          onCreate={openCreated}
+        />
+      ) : null}
     </main>
   );
 }

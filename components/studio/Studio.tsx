@@ -4,13 +4,15 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { renderPage } from "@/components/templates/render";
+import { FLAG_TAB, creationFor } from "@/lib/creation";
 import { LOOKS, PAGE_TYPES } from "@/lib/defaults";
 import { downloadHtml, downloadJson } from "@/lib/export-html";
 import { FONT_CATALOG } from "@/lib/fonts";
 import { auditProject, qualityScore } from "@/lib/quality";
 import { deleteProject, getProject, upsertProject } from "@/lib/store";
-import type { FontId, PageCopy, Project } from "@/lib/types";
-import { ColorField, ImageField, ListEditor, TextField } from "./fields";
+import type { FontId, FormConfig, PageCopy, Project } from "@/lib/types";
+import { CopyEditor } from "./CopyEditor";
+import { ColorField, ImageField, TextField } from "./fields";
 
 const TABS = ["tipo", "marca", "fotos", "copy", "qualidade"] as const;
 type Tab = (typeof TABS)[number];
@@ -101,8 +103,14 @@ export function Studio({ id }: { id: string }) {
           {tab === "tipo" ? <TypeTab project={project} onChange={update} /> : null}
           {tab === "marca" ? <BrandTab project={project} onChange={update} /> : null}
           {tab === "fotos" ? <PhotosTab project={project} onChange={update} /> : null}
-          {tab === "copy" ? <CopyTab project={project} onChange={patchCopy} /> : null}
-          {tab === "qualidade" ? <QualityList flags={flags} score={score} /> : null}
+          {tab === "copy" ? (
+            <CopyEditor
+              project={project}
+              onCopy={patchCopy}
+              onForm={(form: FormConfig) => update({ ...current, form })}
+            />
+          ) : null}
+          {tab === "qualidade" ? <QualityList flags={flags} score={score} onJump={setTab} /> : null}
         </div>
       </aside>
 
@@ -139,7 +147,7 @@ export function Studio({ id }: { id: string }) {
             Abaixo de 80 a página ainda parece rascunho. Não entregues.
           </p>
         </div>
-        <QualityList flags={flags} score={score} compact />
+        <QualityList flags={flags} score={score} compact onJump={setTab} />
         <div className="px-5 py-6">
           <button
             type="button"
@@ -168,6 +176,10 @@ function TypeTab({
 }) {
   return (
     <div className="grid gap-4">
+      <p className="text-[12px] leading-5 text-mist">
+        Mudar o tipo ou a linguagem troca o esqueleto. A marca, as fotos e a copy ficam — o estúdio só mostra os
+        campos que este look usa.
+      </p>
       <TextField
         label="Parceiro"
         value={project.partner}
@@ -276,219 +288,20 @@ function PhotosTab({
   project: Project;
   onChange: (project: Project) => void;
 }) {
+  const spec = creationFor(project.template);
   return (
     <div className="grid gap-5">
+      <p className="text-[12px] leading-5 text-mist">{spec.photoHint}</p>
       <ImageField
-        label="Herói"
+        label={spec.heroLabel}
         value={project.photos.hero}
         onChange={(hero) => onChange({ ...project, photos: { ...project.photos, hero } })}
       />
       <ImageField
-        label="Retrato"
+        label={spec.portraitLabel}
         value={project.photos.portrait}
         onChange={(portrait) => onChange({ ...project, photos: { ...project.photos, portrait } })}
       />
-      <p className="text-[12px] leading-5 text-mist">
-        Usa fotos reais do parceiro. Stock sorridente e escritórios de stock são o caminho mais rápido para
-        uma página genérica.
-      </p>
-    </div>
-  );
-}
-
-function CopyTab({
-  project,
-  onChange,
-}: {
-  project: Project;
-  onChange: (patch: Partial<PageCopy>) => void;
-}) {
-  const copy = project.copy;
-  return (
-    <div className="grid gap-5">
-      <TextField
-        label="Eyebrow"
-        hint="Chamada de audiência ou ideia grande. Uma linha."
-        value={copy.eyebrow}
-        onChange={(eyebrow) => onChange({ eyebrow })}
-      />
-      <TextField
-        label="Headline"
-        hint="Promessa clara. Evita slogans e travessões longos."
-        value={copy.headline}
-        onChange={(headline) => onChange({ headline })}
-        multiline
-        rows={3}
-      />
-      <TextField
-        label="Subheadline"
-        value={copy.subheadline}
-        onChange={(subheadline) => onChange({ subheadline })}
-        multiline
-      />
-      <TextField label="CTA" value={copy.cta} onChange={(cta) => onChange({ cta })} />
-      <TextField label="Ligação do CTA" value={copy.ctaHref} onChange={(ctaHref) => onChange({ ctaHref })} />
-      <TextField
-        label="CTA secundário"
-        value={copy.ctaSecondary ?? ""}
-        onChange={(ctaSecondary) => onChange({ ctaSecondary })}
-      />
-      <TextField
-        label="Título do reconhecimento"
-        value={copy.leadTitle}
-        onChange={(leadTitle) => onChange({ leadTitle })}
-      />
-      <ListEditor
-        label="Problemas"
-        hint="5 a 8 frases na linguagem do cliente. Spray, não cartões."
-        values={copy.problems}
-        onChange={(problems) => onChange({ problems })}
-        min={5}
-      />
-      <TextField label="Título do corpo" value={copy.bodyTitle} onChange={(bodyTitle) => onChange({ bodyTitle })} />
-      <TextField
-        label="Corpo / história"
-        hint="Transformação e argumento. Sem autobiografia irrelevante."
-        value={copy.body}
-        onChange={(body) => onChange({ body })}
-        multiline
-        rows={7}
-      />
-      <TextField
-        label="Título do mecanismo"
-        value={copy.mechanismTitle}
-        onChange={(mechanismTitle) => onChange({ mechanismTitle })}
-      />
-      <div className="grid gap-3">
-        <span className="text-[11px] uppercase tracking-[0.16em] text-mist">Passos do mecanismo</span>
-        {copy.mechanismSteps.map((step, index) => (
-          <div key={index} className="grid gap-2 border border-line p-3">
-            <input
-              value={step.title}
-              placeholder="Nome do passo"
-              onChange={(event) => {
-                const mechanismSteps = [...copy.mechanismSteps];
-                mechanismSteps[index] = { ...step, title: event.target.value };
-                onChange({ mechanismSteps });
-              }}
-              className="border border-line bg-ink px-3 py-2 text-[13px] outline-none"
-            />
-            <textarea
-              value={step.text}
-              placeholder="O que acontece neste passo"
-              onChange={(event) => {
-                const mechanismSteps = [...copy.mechanismSteps];
-                mechanismSteps[index] = { ...step, text: event.target.value };
-                onChange({ mechanismSteps });
-              }}
-              className="border border-line bg-ink px-3 py-2 text-[13px] outline-none"
-              rows={3}
-            />
-          </div>
-        ))}
-      </div>
-      <TextField label="Título da oferta" value={copy.offerTitle} onChange={(offerTitle) => onChange({ offerTitle })} />
-      <TextField label="Nome da oferta" value={copy.offerName} onChange={(offerName) => onChange({ offerName })} />
-      <ListEditor
-        label="O que inclui"
-        values={copy.offerBullets}
-        onChange={(offerBullets) => onChange({ offerBullets })}
-      />
-      <ListEditor label="Bónus" values={copy.bonuses} onChange={(bonuses) => onChange({ bonuses })} min={0} />
-      <div className="grid gap-3">
-        <span className="text-[11px] uppercase tracking-[0.16em] text-mist">Prova autorizada</span>
-        {copy.proof.map((item, index) => (
-          <div key={index} className="grid gap-2 border border-line p-3">
-            <textarea
-              value={item.quote}
-              placeholder="Citação"
-              onChange={(event) => {
-                const proof = [...copy.proof];
-                proof[index] = { ...item, quote: event.target.value };
-                onChange({ proof });
-              }}
-              className="border border-line bg-ink px-3 py-2 text-[13px] outline-none"
-              rows={3}
-            />
-            <input
-              value={item.name}
-              placeholder="Nome"
-              onChange={(event) => {
-                const proof = [...copy.proof];
-                proof[index] = { ...item, name: event.target.value };
-                onChange({ proof });
-              }}
-              className="border border-line bg-ink px-3 py-2 text-[13px] outline-none"
-            />
-            <input
-              value={item.role ?? ""}
-              placeholder="Contexto"
-              onChange={(event) => {
-                const proof = [...copy.proof];
-                proof[index] = { ...item, role: event.target.value };
-                onChange({ proof });
-              }}
-              className="border border-line bg-ink px-3 py-2 text-[13px] outline-none"
-            />
-          </div>
-        ))}
-        <button
-          type="button"
-          onClick={() => onChange({ proof: [...copy.proof, { quote: "", name: "" }] })}
-          className="justify-self-start text-[12px] text-[#c4a574]"
-        >
-          + testemunho
-        </button>
-      </div>
-      <TextField
-        label="Título da garantia"
-        value={copy.guaranteeTitle}
-        onChange={(guaranteeTitle) => onChange({ guaranteeTitle })}
-      />
-      <TextField
-        label="Garantia / risco"
-        hint="Só o que for verdade. Sem resultados garantidos inventados."
-        value={copy.guarantee}
-        onChange={(guarantee) => onChange({ guarantee })}
-        multiline
-      />
-      <ListEditor label="Não é para / não vais receber" values={copy.notFor} onChange={(notFor) => onChange({ notFor })} />
-      <ListEditor label="Levas / vamos trabalhar" values={copy.willGet} onChange={(willGet) => onChange({ willGet })} />
-      <div className="grid gap-3">
-        <span className="text-[11px] uppercase tracking-[0.16em] text-mist">FAQ</span>
-        {copy.faqs.map((item, index) => (
-          <div key={index} className="grid gap-2 border border-line p-3">
-            <input
-              value={item.q}
-              placeholder="Pergunta"
-              onChange={(event) => {
-                const faqs = [...copy.faqs];
-                faqs[index] = { ...item, q: event.target.value };
-                onChange({ faqs });
-              }}
-              className="border border-line bg-ink px-3 py-2 text-[13px] outline-none"
-            />
-            <textarea
-              value={item.a}
-              placeholder="Resposta"
-              onChange={(event) => {
-                const faqs = [...copy.faqs];
-                faqs[index] = { ...item, a: event.target.value };
-                onChange({ faqs });
-              }}
-              className="border border-line bg-ink px-3 py-2 text-[13px] outline-none"
-              rows={3}
-            />
-          </div>
-        ))}
-      </div>
-      <TextField
-        label="O que acontece a seguir"
-        value={copy.nextStep}
-        onChange={(nextStep) => onChange({ nextStep })}
-        multiline
-      />
-      <TextField label="Legal / disclaimer" value={copy.legal} onChange={(legal) => onChange({ legal })} multiline />
     </div>
   );
 }
@@ -497,10 +310,12 @@ function QualityList({
   flags,
   score,
   compact,
+  onJump,
 }: {
   flags: ReturnType<typeof auditProject>;
   score: number;
   compact?: boolean;
+  onJump?: (tab: Tab) => void;
 }) {
   return (
     <div className={compact ? "grid gap-0" : "grid gap-3"}>
@@ -511,7 +326,12 @@ function QualityList({
         </p>
       ) : null}
       {flags.map((flag) => (
-        <div key={flag.id} className="border-b border-line px-5 py-3">
+        <button
+          key={flag.id}
+          type="button"
+          onClick={() => onJump?.(FLAG_TAB[flag.id] ?? "copy")}
+          className="border-b border-line px-5 py-3 text-left hover:bg-[#141816]"
+        >
           <div className="flex items-center justify-between gap-3">
             <p className="text-[13px]">
               {flag.letter ? <span className="mr-2 text-mist">{flag.letter}</span> : null}
@@ -530,7 +350,7 @@ function QualityList({
             </span>
           </div>
           <p className="mt-1 text-[12px] leading-5 text-mist">{flag.detail}</p>
-        </div>
+        </button>
       ))}
     </div>
   );
