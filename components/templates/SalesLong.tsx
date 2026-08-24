@@ -18,14 +18,18 @@ function overlap(item: string, haystack: string) {
   return needle.length > 24 && haystack.toLowerCase().includes(needle);
 }
 
+function keepAmount(text: string) {
+  return text.replace(/(\d)\.(\d{3})/g, "$1\u202f$2").replace(/ €/g, "\u00a0€");
+}
+
 function splitInvestment(text: string) {
   const trimmed = text.trim();
-  const first = trimmed.match(/^[^.]+(?:\.)?/)?.[0] ?? trimmed;
+  const first = trimmed.match(/^.+?€[^.]*(?:\.)?/)?.[0] ?? trimmed.match(/^[^.]+(?:\.)?/)?.[0] ?? trimmed;
   const notes = trimmed.slice(first.length).trim();
   const [primary, alternate] = first.split(/,\s*(?=ou\b)/i);
   return {
-    primary: (primary ?? first).replace(/\.$/, "").trim(),
-    alternate: (alternate ?? "").replace(/\.$/, "").trim(),
+    primary: keepAmount((primary ?? first).replace(/\.$/, "").trim()),
+    alternate: keepAmount((alternate ?? "").replace(/\.$/, "").trim()),
     notes,
   };
 }
