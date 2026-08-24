@@ -15,23 +15,27 @@ import { ListEditor, TextField } from "./fields";
 export function CreateWizard({
   projects,
   initialSourceId,
+  initialCopy,
+  initialName,
   onClose,
   onCreate,
 }: {
   projects: Project[];
   initialType?: string;
   initialSourceId?: string;
+  initialCopy?: FixedCopy;
+  initialName?: string;
   onClose: () => void;
   onCreate: (project: Project) => void;
 }) {
   const sources = useMemo(() => uniqueBrandSources(projects), [projects]);
   const [sourceId, setSourceId] = useState(initialSourceId ?? "");
-  const [name, setName] = useState("");
+  const [name, setName] = useState(initialName ?? "");
   const [partner, setPartner] = useState(() => {
     const source = projects.find((item) => item.id === initialSourceId);
     return source?.partner ?? "";
   });
-  const [copy, setCopy] = useState<FixedCopy>(emptyFixedCopy());
+  const [copy, setCopy] = useState<FixedCopy>(initialCopy ?? emptyFixedCopy());
   const [override, setOverride] = useState<TemplateId | null>(null);
 
   const source = sources.find((item) => item.id === sourceId);
@@ -71,8 +75,9 @@ export function CreateWizard({
 
           <div className="grid gap-5 px-6 py-6">
             <p className="text-[14px] leading-6 text-mist">
-              Sempre os mesmos blocos. Preenche o que tens — o estúdio lê o copy e recomenda a página. Não inventa
-              layout.
+              {initialCopy
+                ? "Copy de teste já está nos blocos. Olha para a direita: o look tem de bater com o cartão da home. Depois abre a página."
+                : "Sempre os mesmos blocos. Preenche o que tens — o estúdio lê o copy e recomenda a página. Não inventa layout."}
             </p>
 
             <label className="grid gap-2">

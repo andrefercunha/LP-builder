@@ -4,15 +4,23 @@ import { CreateWizard } from "@/components/studio/CreateWizard";
 import { LOOKS } from "@/lib/defaults";
 import { auditProject, qualityScore } from "@/lib/quality";
 import { loadProjects, resetSeeds, upsertProject } from "@/lib/store";
+import type { FixedCopy } from "@/lib/creation";
+import { TEST_BRIEFS, type TestBrief } from "@/lib/test-briefs";
 import type { Project } from "@/lib/types";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
+type WizardState = {
+  sourceId?: string;
+  copy?: FixedCopy;
+  name?: string;
+};
+
 export default function HomePage() {
   const router = useRouter();
   const [projects, setProjects] = useState<Project[]>([]);
-  const [wizard, setWizard] = useState<{ sourceId?: string } | null>(null);
+  const [wizard, setWizard] = useState<WizardState | null>(null);
 
   useEffect(() => {
     setProjects(loadProjects());
@@ -22,6 +30,13 @@ export default function HomePage() {
     upsertProject(project);
     setProjects(loadProjects());
     router.push(`/studio/${project.id}`);
+  }
+
+  function startTest(brief: TestBrief) {
+    setWizard({
+      name: brief.name,
+      copy: brief.copy,
+    });
   }
 
   return (
@@ -43,23 +58,54 @@ export default function HomePage() {
           </button>
         </header>
 
-        <section className="grid gap-8 border-b border-line py-10 md:grid-cols-[1.2fr_0.8fr] md:items-end">
-          <p className="max-w-xl text-[16px] leading-7 text-mist">
-            Sempre os mesmos blocos: para quem, headline, problemas, história, mecanismo, oferta, prova, próximo
-            passo. Não escolhes o look primeiro. A linguagem — Carta, Cartaz, Revista, Dossier, Manifesto, Recibo —
-            sai do que está preenchido.
+        <section className="grid gap-6 border-b border-line py-10">
+          <p className="text-[11px] uppercase tracking-[0.16em] text-mist">Como testar — 3 minutos</p>
+          <ol className="grid max-w-3xl gap-3 text-[16px] leading-7 text-paper">
+            <li>
+              <span className="text-mist">1. </span>
+              Abre uma página da lista em baixo. Isso é o resultado final — já desenhada, com copy e marca.
+            </li>
+            <li>
+              <span className="text-mist">2. </span>
+              Clica num dos três testes. O copy entra sozinho. À direita tens de ver o look escrito no cartão.
+            </li>
+            <li>
+              <span className="text-mist">3. </span>
+              Clica “Abrir esta página”. Se a recomendação falhar, troca o look e diz-me o que o copy pedia.
+            </li>
+          </ol>
+        </section>
+
+        <section className="grid gap-4 py-10 md:grid-cols-3">
+          {TEST_BRIEFS.map((brief) => (
+            <button
+              key={brief.id}
+              type="button"
+              onClick={() => startTest(brief)}
+              className="border border-line p-5 text-left hover:border-[#c4a574]"
+            >
+              <p className="text-[11px] uppercase tracking-[0.16em] text-[#c4a574]">Teste · espera {brief.expectLook}</p>
+              <h2 className="mt-3 font-display text-[28px] leading-none">{brief.name}</h2>
+              <p className="mt-3 text-[13px] leading-6 text-mist">{brief.whatToWatch}</p>
+            </button>
+          ))}
+        </section>
+
+        <div className="flex flex-wrap items-center justify-between gap-4 border-y border-line py-6">
+          <p className="max-w-xl text-[14px] leading-6 text-mist">
+            Quando quiseres testar com copy teu, usa o formato vazio. Não escolhes o look — ele sai do texto.
           </p>
           <button
             type="button"
             onClick={() => setWizard({})}
-            className="justify-self-start border border-[#c4a574] px-5 py-3 text-[12px] uppercase tracking-[0.16em] text-[#c4a574] md:justify-self-end"
+            className="border border-[#c4a574] px-5 py-3 text-[12px] uppercase tracking-[0.16em] text-[#c4a574]"
           >
-            Entregar copy
+            Entregar copy meu
           </button>
-        </section>
+        </div>
 
         <section className="pb-20 pt-10">
-          <p className="mb-5 text-[11px] uppercase tracking-[0.16em] text-mist">Páginas</p>
+          <p className="mb-5 text-[11px] uppercase tracking-[0.16em] text-mist">Páginas já feitas — só olhar</p>
           <div className="grid gap-0 border-t border-line">
             {projects.map((project) => {
               const score = qualityScore(auditProject(project));
@@ -96,6 +142,8 @@ export default function HomePage() {
         <CreateWizard
           projects={projects}
           initialSourceId={wizard.sourceId}
+          initialCopy={wizard.copy}
+          initialName={wizard.name}
           onClose={() => setWizard(null)}
           onCreate={openCreated}
         />
