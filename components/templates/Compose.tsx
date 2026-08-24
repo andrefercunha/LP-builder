@@ -43,7 +43,6 @@ function coverFacts(copy: PageCopy, price?: string) {
   const facts: { text: string; mute?: boolean }[] = [];
   if (/quatro meses/i.test(pool)) facts.push({ text: "4 meses" });
   if (price) facts.push({ text: price });
-  if (copy.offerName) facts.push({ text: copy.offerName });
   if (copy.audience) facts.push({ text: copy.audience, mute: true });
   return facts;
 }
@@ -169,6 +168,18 @@ export function Compose({ project }: { project: Project }) {
           </section>
         ) : null}
 
+        {wantsForm ? (
+          <section className="lp-c-midcta">
+            <Shell wide>
+              <p className="lp-c-mid-line">{copy.offerName || brand.name}</p>
+              <a href="#form" className="lp-cta">
+                {copy.cta}
+                <span aria-hidden>→</span>
+              </a>
+            </Shell>
+          </section>
+        ) : null}
+
         {copy.guarantee || copy.authority ? (
           <section className="lp-c-spread lp-c-signoff">
             <Shell wide>
@@ -245,6 +256,18 @@ export function Compose({ project }: { project: Project }) {
   );
 }
 
+function trustLine(
+  copy: PageCopy,
+  investment: ReturnType<typeof splitInvestment> | null,
+  priceOnSide: boolean,
+) {
+  const parts: string[] = [];
+  if (investment?.primary && !priceOnSide) parts.push(investment.primary);
+  if (investment?.alternate) parts.push(investment.alternate);
+  if (/quatro meses/i.test(`${copy.investment ?? ""} ${copy.subheadline}`)) parts.push("compromisso de 4 meses");
+  return parts.slice(0, 3).join(" · ");
+}
+
 function Cover({
   project,
   look,
@@ -258,15 +281,24 @@ function Cover({
 }) {
   const { copy, brand } = project;
   const { lead, rest } = splitLead(copy.subheadline);
-  const facts = coverFacts(copy, investment?.primary);
   const side = look.cover === "split";
+  const wantsCta = project.type !== "thanks" && !formOnCover;
+  const priceOnSide = side && !formOnCover && Boolean(investment?.primary);
+  const trust = wantsCta ? trustLine(copy, investment, priceOnSide) : "";
+  const facts = coverFacts(copy, wantsCta ? undefined : investment?.primary);
 
   return (
     <header className={`lp-c-cover ${look.cover}${look.coverInk ? " ink" : ""}`}>
       <Shell wide>
         <div className="lp-c-nav">
           <LogoMark project={project} />
-          <p>{copy.offerName || brand.name}</p>
+          {wantsCta ? (
+            <a href="#form" className="lp-c-nav-cta">
+              {copy.cta}
+            </a>
+          ) : (
+            <p>{copy.offerName || brand.name}</p>
+          )}
         </div>
         <div className="lp-c-hero">
           <div className="lp-c-hero-main">
@@ -274,6 +306,15 @@ function Cover({
             <h1 className="lp-c-title">{copy.headline}</h1>
             {lead ? <p className="lp-c-lead">{lead}</p> : null}
             {rest ? <p className="lp-c-lead-rest">{rest}</p> : null}
+            {wantsCta ? (
+              <div className="lp-c-hero-cta">
+                <a href="#form" className="lp-cta">
+                  {copy.cta}
+                  <span aria-hidden>→</span>
+                </a>
+                {trust ? <p className="lp-c-trust">{trust}</p> : null}
+              </div>
+            ) : null}
           </div>
           {side ? (
             <aside className="lp-c-side">
