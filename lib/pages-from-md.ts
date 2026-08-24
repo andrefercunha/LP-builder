@@ -139,6 +139,7 @@ export function pagesFromMarkdown(markdown: string, count = 3): Project[] {
       offerName: created.copy.offerName,
     },
     count,
+    ["cover", "mechanism", "argument"],
   );
 
   return looks.map((look, index) => ({

@@ -1,6 +1,6 @@
-import { headingSize, lookFromProject } from "@/lib/look";
-import type { LookSpec, Project } from "@/lib/types";
-import { Faqs, Heading, LeadForm, LogoMark, PageFrame, Shell } from "./PageFrame";
+import { lookFromProject } from "@/lib/look";
+import type { LookSpec, PageCopy, Project } from "@/lib/types";
+import { Faqs, LeadForm, LogoMark, PageFrame, Shell } from "./PageFrame";
 
 function overlap(item: string, haystack: string) {
   const needle = item.trim().toLowerCase();
@@ -29,11 +29,33 @@ function monthParts(title: string, index: number) {
   return { n: String(index + 1).padStart(2, "0"), kicker: `0${index + 1}`, title };
 }
 
+function splitLead(text: string) {
+  const parts = text.match(/[^.!?]+[.!?]+(?:\s+|$)/g)?.map((item) => item.trim()) ?? [text.trim()];
+  if (parts.length < 2) return { lead: text.trim(), rest: "" };
+  if ((parts[1] ?? "").length < 24) {
+    return { lead: `${parts[0]} ${parts[1]}`.trim(), rest: parts.slice(2).join(" ") };
+  }
+  return { lead: parts[0] ?? text.trim(), rest: parts.slice(1).join(" ") };
+}
+
+function coverFacts(copy: PageCopy, price?: string) {
+  const pool = `${copy.investment ?? ""} ${copy.subheadline} ${copy.body}`;
+  const facts: { text: string; mute?: boolean }[] = [];
+  if (/quatro meses/i.test(pool)) facts.push({ text: "4 meses" });
+  if (price) facts.push({ text: price });
+  if (copy.offerName) facts.push({ text: copy.offerName });
+  if (copy.audience) facts.push({ text: copy.audience, mute: true });
+  return facts;
+}
+
 export function Compose({ project }: { project: Project }) {
   const look = lookFromProject(project);
   const { copy, brand } = project;
+  const problems = copy.problems.filter(Boolean);
   const bodyParagraphs = copy.body.trim().split(/\n\n+/).filter(Boolean);
-  const problems = copy.problems.filter((item) => item && !overlap(item, copy.body));
+  const uniqueBody = bodyParagraphs.filter((paragraph) => !problems.some((item) => overlap(item, paragraph)));
+  const opening = uniqueBody[0] || "";
+  const restBody = uniqueBody.slice(1);
   const steps = copy.mechanismSteps.filter((step) => step.title);
   const willGet = copy.willGet.filter(Boolean);
   const notFor = copy.notFor.filter(Boolean);
@@ -51,21 +73,31 @@ export function Compose({ project }: { project: Project }) {
       <div
         className="lp-c"
         data-cover={look.cover}
+        data-argument={look.argument}
+        data-mechanism={look.mechanism}
+        data-scope={look.scope}
+        data-close={look.close}
         data-display={look.display}
         data-ink={look.coverInk ? "1" : "0"}
       >
-        <Cover project={project} look={look} formOnCover={formOnCover} />
+        <Cover project={project} look={look} formOnCover={formOnCover} investment={investment} />
 
-        {bodyParagraphs.length || problems.length ? (
+        {opening || problems.length ? (
           <section className="lp-c-spread">
             <Shell wide>
-              <Argument look={look} title={copy.bodyTitle || copy.leadTitle} pull={bodyParagraphs[0] || copy.leadTitle} rest={bodyParagraphs.slice(1)} problems={problems} />
+              <Argument
+                look={look}
+                title={copy.bodyTitle || copy.leadTitle}
+                opening={opening}
+                rest={restBody}
+                problems={problems}
+              />
             </Shell>
           </section>
         ) : null}
 
         {steps.length > 0 ? (
-          <section className={`lp-c-spread${look.mechanismInk ? " ink" : ""}`}>
+          <section className={`lp-c-spread lp-c-mech-spread${look.mechanismInk ? " ink" : ""}`}>
             <Shell wide>
               <p className="lp-c-kicker">{copy.mechanismTitle || "Como corre"}</p>
               <div className={`lp-c-mech ${look.mechanism}`}>
@@ -74,9 +106,11 @@ export function Compose({ project }: { project: Project }) {
                   return (
                     <article key={step.title}>
                       <p className="lp-c-num">{month.n}</p>
-                      <p className="lp-c-kicker">{month.kicker}</p>
-                      <h3>{month.title}</h3>
-                      <p>{step.text}</p>
+                      <div>
+                        <p className="lp-c-kicker">{month.kicker}</p>
+                        <h3>{month.title}</h3>
+                        <p>{step.text}</p>
+                      </div>
                     </article>
                   );
                 })}
@@ -89,9 +123,12 @@ export function Compose({ project }: { project: Project }) {
           <section className="lp-c-spread">
             <Shell wide>
               <p className="lp-c-kicker">{copy.offerTitle || "Âmbito"}</p>
-              <Heading size={headingSize(look, "section")}>{copy.offerName || "O que entra"}</Heading>
+              <h2 className="lp-c-section">{copy.offerName || "O que entra"}</h2>
               {hasScope ? (
-                <div className={`lp-c-scope ${look.scope}`} data-cols={1 + Number(Boolean(notFor.length)) + Number(Boolean(willGive.length))}>
+                <div
+                  className={`lp-c-scope ${look.scope}`}
+                  data-cols={1 + Number(Boolean(notFor.length)) + Number(Boolean(willGive.length))}
+                >
                   <div className="ink">
                     <h3>Levas</h3>
                     <ul>
@@ -133,18 +170,18 @@ export function Compose({ project }: { project: Project }) {
         ) : null}
 
         {copy.guarantee || copy.authority ? (
-          <section className="lp-c-spread">
+          <section className="lp-c-spread lp-c-signoff">
             <Shell wide>
               <div className="lp-c-two">
                 {copy.guarantee ? (
-                  <div>
+                  <div className="lp-c-plate-wrap">
                     <p className="lp-c-kicker">{copy.guaranteeTitle || "O que garanto"}</p>
                     <p className="lp-c-plate">{copy.guarantee}</p>
                   </div>
                 ) : null}
                 {copy.authority ? (
-                  <div>
-                    <p className="lp-c-kicker">Quem faz este trabalho</p>
+                  <div className="lp-c-sign">
+                    <p className="lp-c-kicker">Autoridade</p>
                     <p className="lp-c-prose">{copy.authority}</p>
                     <cite className="lp-c-cite">{brand.name}</cite>
                   </div>
@@ -174,8 +211,8 @@ export function Compose({ project }: { project: Project }) {
         {faqs.length > 0 ? (
           <section className="lp-c-spread">
             <Shell wide>
-              <Heading size={headingSize(look, "section")}>Antes de avançares</Heading>
-              <div style={{ marginTop: 24 }}>
+              <h2 className="lp-c-section">Antes de avançares</h2>
+              <div className="lp-c-faq">
                 <Faqs items={faqs} />
               </div>
             </Shell>
@@ -184,8 +221,8 @@ export function Compose({ project }: { project: Project }) {
 
         <section className={`lp-c-close ${look.close}`}>
           <Shell wide>
-            <div className={look.close === "invoice" ? "lp-c-two" : "lp-c-one"}>
-              <div>
+            <div className={look.close === "stack" ? "lp-c-one" : "lp-c-close-grid"}>
+              <div className="lp-c-close-copy">
                 {investment ? (
                   <>
                     <p className="lp-c-kicker invert">Investimento</p>
@@ -196,9 +233,7 @@ export function Compose({ project }: { project: Project }) {
                 ) : (
                   <p className="lp-c-kicker invert">{project.type === "thanks" ? "A seguir" : "Começar"}</p>
                 )}
-                <Heading size={headingSize(look, "section")} style={{ color: "inherit", marginTop: 20, maxWidth: 560 }}>
-                  {copy.nextStep}
-                </Heading>
+                <h2 className="lp-c-next">{copy.nextStep}</h2>
                 {copy.legal ? <p className="lp-c-legal">{copy.legal}</p> : null}
               </div>
               {wantsForm && !formOnCover ? <LeadForm project={project} /> : null}
@@ -214,17 +249,17 @@ function Cover({
   project,
   look,
   formOnCover,
+  investment,
 }: {
   project: Project;
   look: LookSpec;
   formOnCover: boolean;
+  investment: ReturnType<typeof splitInvestment> | null;
 }) {
   const { copy, brand } = project;
-  const facts = (copy.eyebrow || "")
-    .split("·")
-    .map((item) => item.trim())
-    .filter(Boolean);
-  const size = headingSize(look, "cover");
+  const { lead, rest } = splitLead(copy.subheadline);
+  const facts = coverFacts(copy, investment?.primary);
+  const side = look.cover === "split";
 
   return (
     <header className={`lp-c-cover ${look.cover}${look.coverInk ? " ink" : ""}`}>
@@ -234,22 +269,13 @@ function Cover({
           <p>{copy.offerName || brand.name}</p>
         </div>
         <div className="lp-c-hero">
-          <div>
-            <p className="lp-c-kicker">{copy.eyebrow || copy.audience || "Página"}</p>
-            <Heading as="h1" size={size}>
-              {copy.headline}
-            </Heading>
-            <p className="lp-c-lead">{copy.subheadline}</p>
-            {copy.audience && look.cover === "letter" ? <p className="lp-c-use">{copy.audience}</p> : null}
-            {facts.length && look.cover !== "letter" ? (
-              <ul className="lp-c-facts">
-                {facts.map((fact) => (
-                  <li key={fact}>{fact}</li>
-                ))}
-              </ul>
-            ) : null}
+          <div className="lp-c-hero-main">
+            <p className="lp-c-kicker">{copy.offerName || brand.name}</p>
+            <h1 className="lp-c-title">{copy.headline}</h1>
+            {lead ? <p className="lp-c-lead">{lead}</p> : null}
+            {rest ? <p className="lp-c-lead-rest">{rest}</p> : null}
           </div>
-          {look.cover === "split" ? (
+          {side ? (
             <aside className="lp-c-side">
               {formOnCover ? (
                 <LeadForm project={project} />
@@ -257,6 +283,7 @@ function Cover({
                 <>
                   <p className="lp-c-kicker invert">{brand.name}</p>
                   <p className="lp-c-side-name">{copy.offerName || brand.name}</p>
+                  {investment?.primary ? <p className="lp-c-side-price">{investment.primary}</p> : null}
                 </>
               )}
             </aside>
@@ -264,6 +291,17 @@ function Cover({
             <LeadForm project={project} />
           ) : null}
         </div>
+        {facts.length ? (
+          <footer className="lp-c-foot">
+            <ul>
+              {facts.map((fact) => (
+                <li key={fact.text} className={fact.mute ? "mute" : undefined}>
+                  {fact.text}
+                </li>
+              ))}
+            </ul>
+          </footer>
+        ) : null}
       </Shell>
     </header>
   );
@@ -272,71 +310,79 @@ function Cover({
 function Argument({
   look,
   title,
-  pull,
+  opening,
   rest,
   problems,
 }: {
   look: LookSpec;
   title?: string;
-  pull?: string;
+  opening: string;
   rest: string[];
   problems: string[];
 }) {
+  const kicker = title || "Argumento";
+  const list = problems.length ? (
+    <ol className="lp-c-points">
+      {problems.map((item, index) => (
+        <li key={item}>
+          <span>{String(index + 1).padStart(2, "0")}</span>
+          <p>{item}</p>
+        </li>
+      ))}
+    </ol>
+  ) : (
+    <div className="lp-c-copy">
+      {rest.map((paragraph) => (
+        <p key={paragraph.slice(0, 40)}>{paragraph}</p>
+      ))}
+    </div>
+  );
+
   if (look.argument === "points" && problems.length) {
     return (
-      <>
-        <p className="lp-c-kicker">{title || "Reconhecimento"}</p>
-        <ol className="lp-c-points">
-          {problems.map((item, index) => (
-            <li key={item}>
-              <span>{String(index + 1).padStart(2, "0")}</span>
-              <p>{item}</p>
-            </li>
-          ))}
-        </ol>
-      </>
+      <div className="lp-c-arg points">
+        <p className="lp-c-kicker">{kicker}</p>
+        {opening ? <h2 className="lp-c-display">{opening}</h2> : null}
+        {list}
+      </div>
     );
   }
 
   if (look.argument === "spread") {
     return (
-      <div className="lp-c-two">
+      <div className="lp-c-arg spread lp-c-two">
         <div>
-          <p className="lp-c-kicker">{title || "Argumento"}</p>
-          <p className="lp-c-display">{pull}</p>
+          <p className="lp-c-kicker">{kicker}</p>
+          {opening ? <p className="lp-c-display">{opening}</p> : null}
         </div>
-        <div className="lp-c-copy">
-          {rest.map((paragraph) => (
-            <p key={paragraph.slice(0, 40)}>{paragraph}</p>
-          ))}
-        </div>
+        {list}
       </div>
     );
   }
 
   if (look.argument === "pull") {
     return (
-      <div className="lp-c-one">
-        <p className="lp-c-kicker">{title || "Argumento"}</p>
-        <p className="lp-c-display">{pull}</p>
-        <div className="lp-c-copy">
-          {rest.map((paragraph) => (
-            <p key={paragraph.slice(0, 40)}>{paragraph}</p>
-          ))}
-        </div>
+      <div className="lp-c-arg pull">
+        <p className="lp-c-kicker">{kicker}</p>
+        {opening ? <p className="lp-c-display">{opening}</p> : null}
+        {list}
       </div>
     );
   }
 
   return (
-    <div className="lp-c-one narrow">
-      <p className="lp-c-kicker">{title || "Argumento"}</p>
-      {pull ? <p className="lp-c-prose strong">{pull}</p> : null}
-      <div className="lp-c-copy">
-        {rest.map((paragraph) => (
-          <p key={paragraph.slice(0, 40)}>{paragraph}</p>
-        ))}
-      </div>
+    <div className="lp-c-arg column">
+      <p className="lp-c-kicker">{kicker}</p>
+      {opening ? <p className="lp-c-prose strong">{opening}</p> : null}
+      {rest.length ? (
+        <div className="lp-c-copy">
+          {rest.map((paragraph) => (
+            <p key={paragraph.slice(0, 40)}>{paragraph}</p>
+          ))}
+        </div>
+      ) : (
+        list
+      )}
     </div>
   );
 }

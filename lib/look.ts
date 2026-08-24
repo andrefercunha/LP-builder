@@ -112,14 +112,18 @@ export function generateDistinctLooks(
     offerName: string;
   },
   count: number,
+  unique: Array<keyof LookSpec> = [],
 ) {
   const looks: LookSpec[] = [];
   const used = new Set<string>();
+  const locked = unique.map(() => new Set<string>());
   for (let n = 0; looks.length < count && n < 80; n += 1) {
     const look = generateLook({ ...input, n });
     const signature = lookSignature(look);
     if (used.has(signature)) continue;
+    if (unique.some((key, index) => locked[index].has(String(look[key])))) continue;
     used.add(signature);
+    unique.forEach((key, index) => locked[index].add(String(look[key])));
     looks.push(look);
   }
   return looks;
