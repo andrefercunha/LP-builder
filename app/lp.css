@@ -1244,3 +1244,61 @@
     padding: 56px 0;
   }
 }
+
+.mesmo-md {
+  background: #0c0f0e;
+  color: #f4f1ea;
+}
+
+.mesmo-md-bar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px 32px;
+  align-items: baseline;
+  padding: 16px 24px;
+  background: #0c0f0e;
+  border-bottom: 1px solid #2a2e2c;
+}
+
+.mesmo-md-bar a {
+  font-size: 12px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #c4a574;
+}
+
+.mesmo-md-bar p {
+  margin: 0;
+  max-width: 46rem;
+  font-size: 14px;
+  line-height: 1.5;
+  color: #b8b3a8;
+}
+
+.mesmo-md-bar code {
+  font-size: 12px;
+  color: #f4f1ea;
+}
+
+.mesmo-md-page {
+  border-bottom: 28px solid #0c0f0e;
+}
+
+.mesmo-md-label {
+  margin: 0;
+  padding: 14px 24px;
+  background: #101513;
+  color: #c4a574;
+  font-size: 12px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.mesmo-md-label a {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}

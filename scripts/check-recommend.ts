@@ -1,6 +1,8 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { parseBriefMarkdown } from "../lib/brief-md";
+import { describeLook, lookFromProject } from "../lib/look";
+import { SISTEMA_MARKDOWN, sistemaPagesFromMd } from "../lib/pages-from-md";
 import { recommendPage } from "../lib/recommend";
 import { TEST_BRIEFS } from "../lib/test-briefs";
 
@@ -23,6 +25,24 @@ const template = parseBriefMarkdown(
 if (!template.copy.headline.trim()) {
   failed += 1;
   console.error("FAIL formato.md did not parse a headline");
+}
+
+const sistemaFile = readFileSync(resolve(process.cwd(), "public/briefs/sistema-crescimento.md"), "utf8");
+if (sistemaFile.trim() !== SISTEMA_MARKDOWN.trim()) {
+  failed += 1;
+  console.error("FAIL SISTEMA_MARKDOWN drifted from public/briefs/sistema-crescimento.md");
+}
+
+const sistemaPages = sistemaPagesFromMd(3);
+const looks = new Set(sistemaPages.map((page) => describeLook(lookFromProject(page))));
+if (sistemaPages.length !== 3 || looks.size !== 3) {
+  failed += 1;
+  console.error(`FAIL same .md must produce 3 distinct looks, got ${[...looks].join(" | ")}`);
+} else {
+  console.log("ok  mesmo-md → 3 looks from sistema-crescimento.md");
+  for (const page of sistemaPages) {
+    console.log(`     ${page.id} · ${describeLook(lookFromProject(page))}`);
+  }
 }
 
 if (failed) {

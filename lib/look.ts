@@ -90,6 +90,41 @@ export function lookFingerprint(input: {
   );
 }
 
+export function lookSignature(look: LookSpec) {
+  return [
+    look.cover,
+    look.argument,
+    look.mechanism,
+    look.scope,
+    look.close,
+    look.coverInk ? "ink" : "paper",
+    look.mechanismInk ? "ink" : "paper",
+    look.display,
+  ].join("|");
+}
+
+export function generateDistinctLooks(
+  input: {
+    type: PageType;
+    partner: string;
+    brand: BrandKit;
+    headline: string;
+    offerName: string;
+  },
+  count: number,
+) {
+  const looks: LookSpec[] = [];
+  const used = new Set<string>();
+  for (let n = 0; looks.length < count && n < 80; n += 1) {
+    const look = generateLook({ ...input, n });
+    const signature = lookSignature(look);
+    if (used.has(signature)) continue;
+    used.add(signature);
+    looks.push(look);
+  }
+  return looks;
+}
+
 export function generateLook(input: {
   type: PageType;
   partner: string;

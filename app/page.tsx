@@ -2,6 +2,7 @@
 
 import { CreateWizard } from "@/components/studio/CreateWizard";
 import { LOOKS } from "@/lib/defaults";
+import { describeLook, lookFromProject } from "@/lib/look";
 import { auditProject, qualityScore } from "@/lib/quality";
 import { loadProjects, resetSeeds, upsertProject } from "@/lib/store";
 import { TEST_BRIEFS, type TestBrief } from "@/lib/test-briefs";
@@ -76,6 +77,28 @@ export default function HomePage() {
           </ol>
         </section>
 
+        <section className="grid gap-4 border-b border-line py-10">
+          <p className="text-[11px] uppercase tracking-[0.16em] text-[#c4a574]">O mesmo .md</p>
+          <h2 className="max-w-3xl font-display text-[clamp(32px,5vw,52px)] leading-none">
+            Sistema de Crescimento. Três composições. O ficheiro não muda.
+          </h2>
+          <p className="max-w-2xl text-[16px] leading-7 text-mist">
+            O ficheiro <code className="text-paper">public/briefs/sistema-crescimento.md</code> gera as três páginas
+            em baixo. A copy não muda. A composição muda. Abre a comparação ou entra em cada uma no estúdio.
+          </p>
+          <div className="flex flex-wrap gap-3">
+            <Link
+              href="/mesmo-md"
+              className="border border-[#c4a574] px-5 py-3 text-[12px] uppercase tracking-[0.16em] text-[#c4a574]"
+            >
+              Ver as três juntas
+            </Link>
+            <a href="/briefs/sistema-crescimento.md" className="px-5 py-3 text-[12px] text-mist underline">
+              Abrir o .md
+            </a>
+          </div>
+        </section>
+
         <section className="grid gap-4 py-10 md:grid-cols-3">
           {TEST_BRIEFS.map((brief) => (
             <button
@@ -121,7 +144,10 @@ export default function HomePage() {
                     <p className="mt-2 text-[13px] text-mist">{project.copy.headline}</p>
                   </Link>
                   <Link href={`/studio/${project.id}`} className="text-[13px] text-mist">
-                    {project.partner} · {LOOKS.find((item) => item.id === project.template)?.label ?? project.type}
+                    {project.partner} ·{" "}
+                    {project.look
+                      ? describeLook(lookFromProject(project))
+                      : (LOOKS.find((item) => item.id === project.template)?.label ?? project.type)}
                   </Link>
                   <Link href={`/studio/${project.id}`} className="font-display text-[28px]">
                     {score}
