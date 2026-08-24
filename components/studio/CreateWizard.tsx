@@ -3,9 +3,10 @@
 import { useMemo, useState } from "react";
 import { BRIEF_TEMPLATE, parseBriefMarkdown } from "@/lib/brief-md";
 import { createFromFixedCopy, uniqueBrandSources } from "@/lib/creation";
-import { LOOKS } from "@/lib/defaults";
-import { canRecommend, rankLooks } from "@/lib/recommend";
-import type { Project, TemplateId } from "@/lib/types";
+import { emptyBrand, PAGE_TYPES } from "@/lib/defaults";
+import { describeLook, generateLook } from "@/lib/look";
+import { canRecommend, recommendPage } from "@/lib/recommend";
+import type { PageType, Project } from "@/lib/types";
 
 export function CreateWizard({
   projects,
@@ -24,21 +25,34 @@ export function CreateWizard({
   const [sourceId, setSourceId] = useState(initialSourceId ?? "");
   const [markdown, setMarkdown] = useState(initialMarkdown ?? "");
   const [fileName, setFileName] = useState(initialMarkdown ? "copy.md" : "");
-  const [override, setOverride] = useState<TemplateId | null>(null);
+  const [typeOverride, setTypeOverride] = useState<PageType | null>(null);
+  const [lookN, setLookN] = useState(0);
 
   const parsed = useMemo(() => parseBriefMarkdown(markdown), [markdown]);
   const source =
     sources.find((item) => item.id === sourceId) ??
     sources.find((item) => item.partner === parsed.partner || item.brand.name === parsed.partner);
-  const ranked = rankLooks(parsed.copy, source?.photos);
-  const picked = override ? ranked.find((item) => item.template === override) ?? ranked[0] : ranked[0];
+  const recommended = recommendPage(parsed.copy, source?.photos);
+  const pageType = typeOverride ?? recommended.type;
+  const typeMeta = PAGE_TYPES.find((item) => item.id === pageType);
+  const partner = source?.partner ?? parsed.partner ?? "Parceiro";
+  const brand = source?.brand ?? { ...emptyBrand(), name: partner };
+  const look = generateLook({
+    type: pageType,
+    partner,
+    brand,
+    headline: parsed.copy.headline,
+    offerName: parsed.copy.offerName,
+    n: lookN,
+  });
   const ready = canRecommend(parsed.copy);
 
   function loadFile(file: File) {
     file.text().then((text) => {
       setMarkdown(text);
       setFileName(file.name);
-      setOverride(null);
+      setTypeOverride(null);
+      setLookN(0);
     });
   }
 
@@ -53,17 +67,15 @@ export function CreateWizard({
   }
 
   function finish() {
-    if (!ready || !picked) return;
-    onCreate(
-      createFromFixedCopy({
-        name: parsed.name,
-        partner: source?.partner ?? parsed.partner,
-        copy: parsed.copy,
-        source,
-        template: picked.template,
-        type: picked.type,
-      }),
-    );
+    if (!ready) return;
+    const project = createFromFixedCopy({
+      name: parsed.name,
+      partner,
+      copy: parsed.copy,
+      source,
+      type: pageType,
+    });
+    onCreate({ ...project, look });
   }
 
   return (
@@ -79,7 +91,8 @@ export function CreateWizard({
 
           <div className="grid gap-5 px-6 py-6">
             <p className="text-[14px] leading-6 text-mist">
-              Um ficheiro, as mesmas secções sempre. Não é um questionário. Largas o .md ou colas o texto.
+              Um ficheiro, as mesmas secções sempre. A composição visual nasce deste copy e desta marca — não de um
+              template fixo.
             </p>
 
             <div className="flex flex-wrap gap-3">
@@ -112,7 +125,8 @@ export function CreateWizard({
                 value={markdown}
                 onChange={(event) => {
                   setMarkdown(event.target.value);
-                  setOverride(null);
+                  setTypeOverride(null);
+                  setLookN(0);
                   if (!event.target.value) setFileName("");
                 }}
                 rows={18}
@@ -128,7 +142,7 @@ export function CreateWizard({
                 value={source?.id ?? sourceId}
                 onChange={(event) => {
                   setSourceId(event.target.value);
-                  setOverride(null);
+                  setLookN(0);
                 }}
                 className="border border-line bg-ink px-3 py-2.5 text-[13px]"
               >
@@ -140,35 +154,30 @@ export function CreateWizard({
                 ))}
               </select>
             </label>
-
-            {ready ? (
-              <div className="grid gap-1 text-[13px] leading-6 text-mist">
-                <p className="text-[11px] uppercase tracking-[0.16em]">O que foi lido</p>
-                {parsed.copy.headline ? <p>Headline — {parsed.copy.headline}</p> : null}
-                {parsed.copy.offerName ? <p>Oferta — {parsed.copy.offerName}</p> : null}
-                {parsed.copy.cta ? <p>CTA — {parsed.copy.cta}</p> : null}
-                {parsed.copy.problems.filter(Boolean).length ? (
-                  <p>Problemas — {parsed.copy.problems.filter(Boolean).length}</p>
-                ) : null}
-              </div>
-            ) : null}
           </div>
         </div>
 
         <aside className="studio-scroll border-t border-line xl:max-h-[92vh] xl:overflow-y-auto xl:border-l xl:border-t-0">
           <div className="border-b border-line px-5 py-4">
-            <p className="text-[11px] uppercase tracking-[0.16em] text-mist">Página recomendada</p>
-            {ready && picked ? (
+            <p className="text-[11px] uppercase tracking-[0.16em] text-mist">O que este copy pede</p>
+            {ready ? (
               <>
-                <p className="mt-3 font-display text-[42px] leading-none">{picked.label}</p>
-                <p className="mt-2 text-[13px] text-mist">
-                  {LOOKS.find((item) => item.id === picked.template)?.brief}
-                </p>
+                <p className="mt-3 font-display text-[42px] leading-none">{typeMeta?.label}</p>
+                <p className="mt-2 text-[13px] text-mist">{typeMeta?.brief}</p>
                 <ul className="mt-4 grid gap-2 text-[13px] leading-5 text-paper">
-                  {picked.why.map((reason) => (
+                  {recommended.why.map((reason) => (
                     <li key={reason}>{reason}</li>
                   ))}
                 </ul>
+                <p className="mt-5 text-[11px] uppercase tracking-[0.16em] text-mist">Composição</p>
+                <p className="mt-2 text-[14px] leading-6 text-paper">{describeLook(look)}</p>
+                <button
+                  type="button"
+                  onClick={() => setLookN((value) => value + 1)}
+                  className="mt-3 text-[12px] text-[#c4a574] underline"
+                >
+                  Gerar outra composição
+                </button>
               </>
             ) : (
               <p className="mt-3 text-[13px] leading-6 text-mist">
@@ -179,18 +188,20 @@ export function CreateWizard({
 
           {ready ? (
             <div className="grid gap-2 px-5 py-4">
-              <p className="text-[11px] uppercase tracking-[0.16em] text-mist">Ou escolhe outra</p>
-              {ranked.slice(0, 4).map((item) => (
+              <p className="text-[11px] uppercase tracking-[0.16em] text-mist">Se o tipo falhou</p>
+              {PAGE_TYPES.map((item) => (
                 <button
-                  key={item.template}
+                  key={item.id}
                   type="button"
-                  onClick={() => setOverride(item.template)}
+                  onClick={() => {
+                    setTypeOverride(item.id);
+                    setLookN(0);
+                  }}
                   className={`border px-3 py-3 text-left ${
-                    picked?.template === item.template ? "border-[#c4a574] bg-[#141816]" : "border-line"
+                    pageType === item.id ? "border-[#c4a574] bg-[#141816]" : "border-line"
                   }`}
                 >
                   <p className="text-[14px]">{item.label}</p>
-                  <p className="mt-1 text-[12px] text-mist">{item.why[0]}</p>
                 </button>
               ))}
             </div>

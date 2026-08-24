@@ -1,5 +1,24 @@
 export type PageType = "opt-in" | "sales" | "booking" | "thanks";
 
+export type CoverKind = "poster" | "letter" | "split" | "band" | "frame";
+export type ArgumentKind = "spread" | "column" | "pull" | "points";
+export type MechanismKind = "grid" | "spine" | "stack" | "strip";
+export type ScopeKind = "fields" | "ledger" | "pair";
+export type CloseKind = "invoice" | "stack" | "card";
+export type DisplayKind = "huge" | "editorial" | "compact";
+
+export type LookSpec = {
+  cover: CoverKind;
+  argument: ArgumentKind;
+  mechanism: MechanismKind;
+  scope: ScopeKind;
+  close: CloseKind;
+  coverInk: boolean;
+  mechanismInk: boolean;
+  display: DisplayKind;
+  n: number;
+};
+
 export type TemplateId =
   | "opt-in-dense"
   | "opt-in-light"
@@ -101,6 +120,7 @@ export type Project = {
   partner: string;
   type: PageType;
   template: TemplateId;
+  look?: LookSpec;
   brand: BrandKit;
   copy: PageCopy;
   photos: Photos;

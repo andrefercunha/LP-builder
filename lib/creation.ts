@@ -246,14 +246,14 @@ export function createFromFixedCopy({
   const typeLabel = PAGE_TYPES.find((item) => item.id === pageType)?.label ?? "página";
   const cta = copy.cta.trim() || DEFAULT_CTA[pageType];
   const pageCopy = fixedCopyToPageCopy({ ...copy, cta });
+  const partnerName = source?.partner ?? (partner.trim() || "Parceiro");
+  const brand = source ? { ...source.brand } : { ...emptyBrand(), name: partner.trim() || "Parceiro" };
   const project = createProject({
     type: pageType,
     template: pageTemplate,
     name: name.trim() || copy.offerName.trim() || copy.headline.trim().slice(0, 42) || `Nova ${typeLabel.toLowerCase()}`,
-    partner: source?.partner ?? (partner.trim() || "Parceiro"),
-    brand: source
-      ? { ...source.brand }
-      : { ...emptyBrand(), name: partner.trim() || "Parceiro" },
+    partner: partnerName,
+    brand,
     photos,
     copy: pageCopy,
     form: {

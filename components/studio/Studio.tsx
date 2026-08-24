@@ -6,7 +6,8 @@ import { useEffect, useMemo, useState } from "react";
 import { renderPage } from "@/components/templates/render";
 import { fixedCopyToMarkdown, parseBriefMarkdown } from "@/lib/brief-md";
 import { FLAG_TAB, creationFor, pageCopyToFixed } from "@/lib/creation";
-import { LOOKS, PAGE_TYPES } from "@/lib/defaults";
+import { PAGE_TYPES } from "@/lib/defaults";
+import { describeLook, generateLook, lookFromProject, nextLook } from "@/lib/look";
 import { recommendPage } from "@/lib/recommend";
 import { downloadHtml, downloadJson } from "@/lib/export-html";
 import { FONT_CATALOG } from "@/lib/fonts";
@@ -198,14 +199,16 @@ function TypeTab({
   onChange: (project: Project) => void;
 }) {
   const recommended = recommendPage(pageCopyToFixed(project.copy), project.photos);
-  const recLook = LOOKS.find((item) => item.id === recommended.template);
+  const recType = PAGE_TYPES.find((item) => item.id === recommended.type);
+  const look = lookFromProject(project);
 
   return (
     <div className="grid gap-4">
       <p className="text-[12px] leading-5 text-mist">
-        A linguagem sai do copy. Podes trocar se a recomendação falhar — a marca, as fotos e o texto ficam.
+        O copy decide o tipo de página. A composição visual é gerada para este parceiro — não escolhida de um
+        template. Se duas páginas saírem parecidas, gera outra.
       </p>
-      {recommended.template !== project.template ? (
+      {recommended.type !== project.type ? (
         <button
           type="button"
           onClick={() =>
@@ -213,21 +216,41 @@ function TypeTab({
               ...project,
               type: recommended.type,
               template: recommended.template,
+              look: generateLook({
+                type: recommended.type,
+                partner: project.partner,
+                brand: project.brand,
+                headline: project.copy.headline,
+                offerName: project.copy.offerName,
+              }),
             })
           }
           className="border border-[#c4a574] px-4 py-4 text-left"
         >
-          <p className="text-[11px] uppercase tracking-[0.16em] text-[#c4a574]">Recomendado para este copy</p>
-          <p className="mt-2 text-[16px]">{recLook?.label}</p>
+          <p className="text-[11px] uppercase tracking-[0.16em] text-[#c4a574]">Tipo recomendado para este copy</p>
+          <p className="mt-2 text-[16px]">{recType?.label}</p>
           <p className="mt-1 text-[13px] text-mist">{recommended.why[0]}</p>
         </button>
       ) : (
-        <p className="text-[13px] text-[#c4a574]">Este copy pede {recLook?.label}.</p>
+        <p className="text-[13px] text-[#c4a574]">Este copy pede {recType?.label}.</p>
       )}
       <TextField
         label="Parceiro"
         value={project.partner}
-        onChange={(partner) => onChange({ ...project, partner })}
+        onChange={(partner) =>
+          onChange({
+            ...project,
+            partner,
+            look: generateLook({
+              type: project.type,
+              partner,
+              brand: project.brand,
+              headline: project.copy.headline,
+              offerName: project.copy.offerName,
+              n: look.n,
+            }),
+          })
+        }
       />
       {PAGE_TYPES.map((item) => (
         <button
@@ -238,6 +261,13 @@ function TypeTab({
               ...project,
               type: item.id,
               template: item.template,
+              look: generateLook({
+                type: item.id,
+                partner: project.partner,
+                brand: project.brand,
+                headline: project.copy.headline,
+                offerName: project.copy.offerName,
+              }),
             })
           }
           className={`border px-4 py-4 text-left ${
@@ -248,20 +278,17 @@ function TypeTab({
           <p className="mt-1 text-[13px] text-mist">{item.brief}</p>
         </button>
       ))}
-      <p className="pt-2 text-[11px] uppercase tracking-[0.16em] text-mist">Linguagem visual</p>
-      {LOOKS.filter((item) => item.type === project.type).map((item) => (
+      <div className="border border-line px-4 py-4">
+        <p className="text-[11px] uppercase tracking-[0.16em] text-mist">Composição desta pessoa</p>
+        <p className="mt-2 text-[15px] leading-6">{describeLook(look)}</p>
         <button
-          key={item.id}
           type="button"
-          onClick={() => onChange({ ...project, template: item.id })}
-          className={`border px-4 py-3 text-left ${
-            project.template === item.id ? "border-[#c4a574] bg-[#141816]" : "border-line"
-          }`}
+          onClick={() => onChange({ ...project, look: nextLook(project) })}
+          className="mt-3 text-[12px] text-[#c4a574] underline"
         >
-          <p className="text-[14px]">{item.label}</p>
-          <p className="mt-1 text-[12px] text-mist">{item.brief}</p>
+          Gerar outra composição
         </button>
-      ))}
+      </div>
     </div>
   );
 }

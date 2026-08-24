@@ -67,7 +67,7 @@ export default function HomePage() {
             </li>
             <li>
               <span className="text-mist">2. </span>
-              Clica num teste. Entra o .md. À direita tem de aparecer o look do cartão.
+              Clica num teste. Entra o .md. À direita aparece o tipo de página e uma composição gerada.
             </li>
             <li>
               <span className="text-mist">3. </span>

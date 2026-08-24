@@ -1,3 +1,4 @@
+import { generateLook } from "./look";
 import type { BrandKit, FormConfig, PageCopy, PageType, Photos, Project, TemplateId } from "./types";
 
 export const PAGE_TYPES: Array<{
@@ -16,7 +17,7 @@ export const PAGE_TYPES: Array<{
     id: "sales",
     template: "sales-long",
     label: "Página de vendas",
-    brief: "Documento de reunião: argumento, âmbito, investimento.",
+    brief: "Argumento, âmbito e investimento. A composição muda com a pessoa.",
   },
   {
     id: "booking",
@@ -126,14 +127,26 @@ export function createProject(partial?: Partial<Project>): Project {
   const now = new Date().toISOString();
   const type = partial?.type ?? "sales";
   const preset = PAGE_TYPES.find((item) => item.id === type)!;
+  const brand = { ...emptyBrand(), ...partial?.brand };
+  const copy = { ...emptyCopy(), ...partial?.copy };
+  const partner = partial?.partner ?? "Parceiro";
   return {
     id: partial?.id ?? crypto.randomUUID(),
     name: partial?.name ?? "Nova página",
-    partner: partial?.partner ?? "Parceiro",
+    partner,
     type,
     template: partial?.template ?? preset.template,
-    brand: { ...emptyBrand(), ...partial?.brand },
-    copy: { ...emptyCopy(), ...partial?.copy },
+    look:
+      partial?.look ??
+      generateLook({
+        type,
+        partner,
+        brand,
+        headline: copy.headline,
+        offerName: copy.offerName,
+      }),
+    brand,
+    copy,
     photos: { ...emptyPhotos(), ...partial?.photos },
     form: { ...emptyForm(), ...partial?.form },
     createdAt: partial?.createdAt ?? now,
