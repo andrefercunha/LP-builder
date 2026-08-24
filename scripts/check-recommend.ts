@@ -33,13 +33,13 @@ if (sistemaFile.trim() !== SISTEMA_MARKDOWN.trim()) {
   console.error("FAIL SISTEMA_MARKDOWN drifted from public/briefs/sistema-crescimento.md");
 }
 
-const sistemaPages = sistemaPagesFromMd(3);
+const sistemaPages = sistemaPagesFromMd(4);
 const looks = new Set(sistemaPages.map((page) => describeLook(lookFromProject(page))));
-if (sistemaPages.length !== 3 || looks.size !== 3) {
+if (sistemaPages.length !== 4 || looks.size !== 4) {
   failed += 1;
-  console.error(`FAIL same .md must produce 3 distinct looks, got ${[...looks].join(" | ")}`);
+  console.error(`FAIL same .md must produce 4 distinct looks, got ${[...looks].join(" | ")}`);
 } else {
-  console.log("ok  mesmo-md → 3 looks from sistema-crescimento.md");
+  console.log("ok  mesmo-md → 4 looks from sistema-crescimento.md");
   for (const page of sistemaPages) {
     console.log(`     ${page.id} · ${describeLook(lookFromProject(page))}`);
   }

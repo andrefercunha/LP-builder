@@ -83,7 +83,7 @@ export function Compose({ project }: { project: Project }) {
         <Cover project={project} look={look} formOnCover={formOnCover} investment={investment} />
 
         {opening || problems.length ? (
-          <section className="lp-c-spread">
+          <section id="argumento" className="lp-c-spread">
             <Shell wide>
               <Argument
                 look={look}
@@ -97,7 +97,7 @@ export function Compose({ project }: { project: Project }) {
         ) : null}
 
         {steps.length > 0 ? (
-          <section className={`lp-c-spread lp-c-mech-spread${look.mechanismInk ? " ink" : ""}`}>
+          <section id="mecanismo" className={`lp-c-spread lp-c-mech-spread${look.mechanismInk ? " ink" : ""}`}>
             <Shell wide>
               <p className="lp-c-kicker">{copy.mechanismTitle || "Como corre"}</p>
               <div className={`lp-c-mech ${look.mechanism}`}>
@@ -120,7 +120,7 @@ export function Compose({ project }: { project: Project }) {
         ) : null}
 
         {hasScope || bullets.length > 0 ? (
-          <section className="lp-c-spread">
+          <section id="ambito" className="lp-c-spread">
             <Shell wide>
               <p className="lp-c-kicker">{copy.offerTitle || "Âmbito"}</p>
               <h2 className="lp-c-section">{copy.offerName || "O que entra"}</h2>
@@ -219,7 +219,7 @@ export function Compose({ project }: { project: Project }) {
           </section>
         ) : null}
 
-        <section className={`lp-c-close ${look.close}`}>
+        <section id="fecho" className={`lp-c-close ${look.close}`}>
           <Shell wide>
             <div className={look.close === "stack" ? "lp-c-one" : "lp-c-close-grid"}>
               <div className="lp-c-close-copy">

@@ -80,10 +80,10 @@ export default function HomePage() {
         <section className="grid gap-4 border-b border-line py-10">
           <p className="text-[11px] uppercase tracking-[0.16em] text-[#c4a574]">O mesmo .md</p>
           <h2 className="max-w-3xl font-display text-[clamp(32px,5vw,52px)] leading-none">
-            Sistema de Crescimento. Três composições. O ficheiro não muda.
+            Sistema de Crescimento. Quatro composições. O ficheiro não muda.
           </h2>
           <p className="max-w-2xl text-[16px] leading-7 text-mist">
-            O ficheiro <code className="text-paper">public/briefs/sistema-crescimento.md</code> gera as três páginas
+            O ficheiro <code className="text-paper">public/briefs/sistema-crescimento.md</code> gera as quatro páginas
             em baixo. A copy não muda. A composição muda. Abre a comparação ou entra em cada uma no estúdio.
           </p>
           <div className="flex flex-wrap gap-3">
@@ -91,7 +91,7 @@ export default function HomePage() {
               href="/mesmo-md"
               className="border border-[#c4a574] px-5 py-3 text-[12px] uppercase tracking-[0.16em] text-[#c4a574]"
             >
-              Ver as três juntas
+              Ver as quatro juntas
             </Link>
             <a href="/briefs/sistema-crescimento.md" className="px-5 py-3 text-[12px] text-mist underline">
               Abrir o .md

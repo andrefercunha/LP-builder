@@ -17,6 +17,13 @@ export default function PreviewPage() {
     setProject(getProject(params.id) ?? SEED_PROJECTS.find((item) => item.id === params.id) ?? null);
   }, [params.id]);
 
+  useEffect(() => {
+    if (!project) return;
+    const hash = window.location.hash.slice(1);
+    if (!hash) return;
+    document.getElementById(hash)?.scrollIntoView({ behavior: "instant", block: "start" });
+  }, [project]);
+
   if (!project) {
     return <main className="min-h-screen bg-ink p-8 text-mist">Página não encontrada neste browser.</main>;
   }

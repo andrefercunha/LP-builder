@@ -8,7 +8,7 @@ import Link from "next/link";
 import { useEffect, useMemo } from "react";
 
 export default function MesmoMdPage() {
-  const pages = useMemo(() => sistemaPagesFromMd(3), []);
+  const pages = useMemo(() => sistemaPagesFromMd(4), []);
 
   useEffect(() => {
     pages.forEach(upsertProject);
@@ -19,7 +19,7 @@ export default function MesmoMdPage() {
       <header className="mesmo-md-bar">
         <Link href="/">← Estúdio</Link>
         <p>
-          Três páginas geradas do mesmo ficheiro{" "}
+          Quatro páginas geradas do mesmo ficheiro{" "}
           <code>public/briefs/sistema-crescimento.md</code>. A copy é a mesma.
           A composição muda.
         </p>

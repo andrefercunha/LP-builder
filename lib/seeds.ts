@@ -11,7 +11,7 @@ const EVENT_PORTRAIT =
   "https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=1400&q=80";
 
 export const SEED_PROJECTS: Project[] = [
-  ...sistemaPagesFromMd(3),
+  ...sistemaPagesFromMd(4),
   {
     id: "anti-tretas",
     name: "Sessão Anti-Tretas",
