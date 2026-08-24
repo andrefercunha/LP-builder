@@ -48,10 +48,6 @@ export function Studio({ id }: { id: string }) {
     setSaved(false);
   }
 
-  function patchCopy(patch: Partial<PageCopy>) {
-    update({ ...current, copy: { ...current.copy, ...patch } });
-  }
-
   function save() {
     upsertProject(current);
     setSaved(true);
@@ -108,7 +104,14 @@ export function Studio({ id }: { id: string }) {
           {tab === "copy" ? (
             <CopyEditor
               project={project}
-              onCopy={patchCopy}
+              onApply={(next) =>
+                update({
+                  ...current,
+                  name: next.name || current.name,
+                  partner: next.partner || current.partner,
+                  copy: next.copy,
+                })
+              }
               onForm={(form: FormConfig) => update({ ...current, form })}
             />
           ) : null}
