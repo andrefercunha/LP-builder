@@ -1,6 +1,7 @@
 "use client";
 
-import { applyBrief, creationFor, emptyBrief, isCopyStarted, type PageBrief } from "@/lib/creation";
+import { parseBriefMarkdown } from "@/lib/brief-md";
+import { applyBrief, creationFor, emptyBrief, fixedCopyToPageCopy, isCopyStarted, type PageBrief } from "@/lib/creation";
 import { DEFAULT_CTA } from "@/lib/defaults";
 import type { FormConfig, PageCopy, Project } from "@/lib/types";
 import { useState } from "react";
@@ -52,8 +53,22 @@ export function CopyEditor({
           <span className="text-[12px] text-mist">{briefOpen ? "fechar" : "abrir"}</span>
         </button>
         <p className="mt-2 text-[12px] leading-5 text-mist">
-          {spec.intro} O formato do copy é fixo. Se mudares o texto, a tab Tipo volta a recomendar a página.
+          {spec.intro} O copy entra como .md. Estes campos são só para afinar o que o ficheiro já trouxe.
         </p>
+        <label className="mt-3 cursor-pointer text-[12px] text-[#c4a574]">
+          Substituir por outro .md
+          <input
+            type="file"
+            accept=".md,text/markdown,text/plain"
+            className="hidden"
+            onChange={async (event) => {
+              const file = event.target.files?.[0];
+              if (!file) return;
+              const parsed = parseBriefMarkdown(await file.text());
+              onCopy(fixedCopyToPageCopy(parsed.copy, copy));
+            }}
+          />
+        </label>
         {briefOpen ? (
           <div className="mt-4 grid gap-3">
             <input

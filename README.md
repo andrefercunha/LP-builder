@@ -8,7 +8,7 @@ Não se pede a um modelo para “inventar uma página”. Entrega-se **marca, fo
 
 - Brand kit: cores, fontes, logótipo
 - Fotos reais (herói e retrato)
-- Copy por secções, não um bloco único
+- Copy num **ficheiro markdown** com secções fixas (`public/briefs/formato.md`)
 
 ## O que sai
 
@@ -45,9 +45,9 @@ npm run dev
 Abre [http://localhost:3000](http://localhost:3000).
 
 1. **Olhar.** Clica numa página da lista (ex.: Sessão Anti-Tretas). Isso é o resultado — copy, marca, look.
-2. **Recomendação.** Na home, clica **Copy de sessão**. O formato enche-se sozinho. À direita tem de aparecer **Carta**. Depois **Abrir esta página**.
-3. Repete com **Copy de workshop** (espera Cartaz) e **Copy de obrigado** (espera Recibo).
-4. **Copy teu.** “Entregar copy meu”, cola o briefing no formato, vê se a recomendação faz sentido.
+2. **Recomendação.** Clica **Copy de sessão**. Entra o `.md`. À direita tem de aparecer **Carta**.
+3. Repete com workshop (Cartaz) e obrigado (Recibo).
+4. **Copy teu.** Descarrega `formato-copy.md`, preenche as secções, larga o ficheiro.
 
 As páginas ficam neste browser (`localStorage`). “Repor exemplos” volta aos originais.
 

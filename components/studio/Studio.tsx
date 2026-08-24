@@ -4,7 +4,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { renderPage } from "@/components/templates/render";
-import { FLAG_TAB, creationFor, pageCopyToFixed } from "@/lib/creation";
+import { fixedCopyToMarkdown, parseBriefMarkdown } from "@/lib/brief-md";
+import { FLAG_TAB, creationFor, fixedCopyToPageCopy, pageCopyToFixed } from "@/lib/creation";
 import { LOOKS, PAGE_TYPES } from "@/lib/defaults";
 import { recommendPage } from "@/lib/recommend";
 import { downloadHtml, downloadJson } from "@/lib/export-html";
@@ -122,6 +123,24 @@ export function Studio({ id }: { id: string }) {
             <Link href={`/preview/${project.id}`} target="_blank" onClick={save}>
               Abrir página
             </Link>
+            <button
+              type="button"
+              onClick={() => {
+                const text = fixedCopyToMarkdown(pageCopyToFixed(current.copy), {
+                  name: current.name,
+                  partner: current.partner,
+                });
+                const blob = new Blob([text], { type: "text/markdown;charset=utf-8" });
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement("a");
+                link.href = url;
+                link.download = `${current.name || "copy"}.md`;
+                link.click();
+                URL.revokeObjectURL(url);
+              }}
+            >
+              MD
+            </button>
             <button type="button" onClick={() => downloadJson(project)}>
               JSON
             </button>

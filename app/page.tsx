@@ -4,7 +4,6 @@ import { CreateWizard } from "@/components/studio/CreateWizard";
 import { LOOKS } from "@/lib/defaults";
 import { auditProject, qualityScore } from "@/lib/quality";
 import { loadProjects, resetSeeds, upsertProject } from "@/lib/store";
-import type { FixedCopy } from "@/lib/creation";
 import { TEST_BRIEFS, type TestBrief } from "@/lib/test-briefs";
 import type { Project } from "@/lib/types";
 import Link from "next/link";
@@ -13,8 +12,7 @@ import { useEffect, useState } from "react";
 
 type WizardState = {
   sourceId?: string;
-  copy?: FixedCopy;
-  name?: string;
+  markdown?: string;
 };
 
 export default function HomePage() {
@@ -32,11 +30,9 @@ export default function HomePage() {
     router.push(`/studio/${project.id}`);
   }
 
-  function startTest(brief: TestBrief) {
-    setWizard({
-      name: brief.name,
-      copy: brief.copy,
-    });
+  async function startTest(brief: TestBrief) {
+    const markdown = await fetch(brief.file).then((response) => response.text());
+    setWizard({ markdown });
   }
 
   return (
@@ -46,7 +42,7 @@ export default function HomePage() {
           <div>
             <p className="text-[11px] uppercase tracking-[0.18em] text-mist">REDNA · Estúdio LP</p>
             <h1 className="mt-3 max-w-3xl font-display text-[clamp(42px,7vw,78px)] leading-[0.92]">
-              O copy entra num formato fixo. O estúdio recomenda a página.
+              O copy é um ficheiro .md. O estúdio recomenda a página.
             </h1>
           </div>
           <button
@@ -59,19 +55,23 @@ export default function HomePage() {
         </header>
 
         <section className="grid gap-6 border-b border-line py-10">
-          <p className="text-[11px] uppercase tracking-[0.16em] text-mist">Como testar — 3 minutos</p>
+          <p className="max-w-2xl text-[16px] leading-7 text-mist">
+            Sempre as mesmas secções: para quem, headline, problemas, história, mecanismo, oferta, prova, próximo
+            passo, CTA. Escreves isso no Notion, no Cursor ou num doc — exportas markdown — e largas o ficheiro.
+            Não é um formulário de 20 perguntas.
+          </p>
           <ol className="grid max-w-3xl gap-3 text-[16px] leading-7 text-paper">
             <li>
               <span className="text-mist">1. </span>
-              Abre uma página da lista em baixo. Isso é o resultado final — já desenhada, com copy e marca.
+              Olha para uma página já feita, em baixo.
             </li>
             <li>
               <span className="text-mist">2. </span>
-              Clica num dos três testes. O copy entra sozinho. À direita tens de ver o look escrito no cartão.
+              Clica num teste. Entra o .md. À direita tem de aparecer o look do cartão.
             </li>
             <li>
               <span className="text-mist">3. </span>
-              Clica “Abrir esta página”. Se a recomendação falhar, troca o look e diz-me o que o copy pedia.
+              Ou descarrega o formato, preenche o teu copy, e larga o ficheiro.
             </li>
           </ol>
         </section>
@@ -84,7 +84,9 @@ export default function HomePage() {
               onClick={() => startTest(brief)}
               className="border border-line p-5 text-left hover:border-[#c4a574]"
             >
-              <p className="text-[11px] uppercase tracking-[0.16em] text-[#c4a574]">Teste · espera {brief.expectLook}</p>
+              <p className="text-[11px] uppercase tracking-[0.16em] text-[#c4a574]">
+                Teste · {brief.file} · espera {brief.expectLook}
+              </p>
               <h2 className="mt-3 font-display text-[28px] leading-none">{brief.name}</h2>
               <p className="mt-3 text-[13px] leading-6 text-mist">{brief.whatToWatch}</p>
             </button>
@@ -93,14 +95,14 @@ export default function HomePage() {
 
         <div className="flex flex-wrap items-center justify-between gap-4 border-y border-line py-6">
           <p className="max-w-xl text-[14px] leading-6 text-mist">
-            Quando quiseres testar com copy teu, usa o formato vazio. Não escolhes o look — ele sai do texto.
+            Copy teu: descarrega o formato, preenche só o que tens, larga o .md.
           </p>
           <button
             type="button"
             onClick={() => setWizard({})}
             className="border border-[#c4a574] px-5 py-3 text-[12px] uppercase tracking-[0.16em] text-[#c4a574]"
           >
-            Entregar copy meu
+            Largar um .md
           </button>
         </div>
 
@@ -142,8 +144,7 @@ export default function HomePage() {
         <CreateWizard
           projects={projects}
           initialSourceId={wizard.sourceId}
-          initialCopy={wizard.copy}
-          initialName={wizard.name}
+          initialMarkdown={wizard.markdown}
           onClose={() => setWizard(null)}
           onCreate={openCreated}
         />
