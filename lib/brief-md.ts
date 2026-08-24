@@ -29,7 +29,14 @@ const HEADING_ALIASES: Record<string, keyof FixedCopy | "name" | "partner"> = {
   prova: "proofQuote",
   testemunho: "proofQuote",
   "nao e para": "notFor",
+  "nao levas": "notFor",
   "nao e": "notFor",
+  levas: "willGet",
+  "o que levas": "willGet",
+  "o que e teu": "willGive",
+  "o que e teu.": "willGive",
+  autoridade: "authority",
+  investimento: "investment",
   garantia: "guarantee",
   risco: "guarantee",
   "proximo passo": "nextStep",
@@ -193,7 +200,7 @@ export function parseBriefMarkdown(raw: string): ParsedBrief {
       partner = text.split(/\r?\n/)[0];
       continue;
     }
-    if (key === "problems" || key === "offerBullets" || key === "notFor") {
+    if (key === "problems" || key === "offerBullets" || key === "notFor" || key === "willGive" || key === "willGet") {
       copy[key] = bullets(text);
       continue;
     }
@@ -267,6 +274,15 @@ ${copy.proofName ? `Nome: ${copy.proofName}` : ""}
 
 ## Não é para
 ${list(copy.notFor)}
+
+## O que é teu
+${list(copy.willGive ?? [])}
+
+## Autoridade
+${copy.authority ?? ""}
+
+## Investimento
+${copy.investment ?? ""}
 
 ## Garantia
 ${copy.guarantee}

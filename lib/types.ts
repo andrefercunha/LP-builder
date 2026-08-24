@@ -75,9 +75,12 @@ export type PageCopy = {
   guarantee: string;
   notFor: string[];
   willGet: string[];
+  willGive?: string[];
   faqs: FaqItem[];
   nextStep: string;
   legal: string;
+  authority?: string;
+  investment?: string;
 };
 
 export type Photos = {

@@ -82,6 +82,7 @@ export function emptyCopy(): PageCopy {
     guarantee: "",
     notFor: [],
     willGet: [],
+    willGive: [],
     faqs: [
       { q: "", a: "" },
       { q: "", a: "" },
@@ -89,6 +90,8 @@ export function emptyCopy(): PageCopy {
     ],
     nextStep: "",
     legal: "",
+    authority: "",
+    investment: "",
   };
 }
 

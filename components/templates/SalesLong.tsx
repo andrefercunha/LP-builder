@@ -137,9 +137,13 @@ export function SalesLong({ project }: { project: Project }) {
           <Shell>
             <div className="lp-split" style={{ display: "grid", gridTemplateColumns: "0.9fr 1.1fr", gap: 72 }}>
               <Heading size={54}>{copy.bodyTitle}</Heading>
-              <p style={{ margin: 0, fontSize: 20, lineHeight: 1.75, color: "var(--lp-muted)", maxWidth: 640 }}>
-                {copy.body}
-              </p>
+              <div style={{ display: "grid", gap: 20, maxWidth: 640 }}>
+                {copy.body.split(/\n\n+/).map((paragraph) => (
+                  <p key={paragraph.slice(0, 48)} style={{ margin: 0, fontSize: 20, lineHeight: 1.75, color: "var(--lp-muted)" }}>
+                    {paragraph}
+                  </p>
+                ))}
+              </div>
             </div>
           </Shell>
         </section>
@@ -155,7 +159,7 @@ export function SalesLong({ project }: { project: Project }) {
             <div
               style={{
                 display: "grid",
-                gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
+                gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
                 gap: 0,
                 marginTop: 56,
                 borderTop: "1px solid color-mix(in srgb, var(--lp-fg) 12%, transparent)",
@@ -224,9 +228,6 @@ export function SalesLong({ project }: { project: Project }) {
                 Inclui ainda: {copy.bonuses.filter(Boolean).join(" · ")}
               </p>
             ) : null}
-            <div style={{ marginTop: 40 }}>
-              <CtaButton href={copy.ctaHref}>{copy.cta}</CtaButton>
-            </div>
           </div>
         </Shell>
       </section>
@@ -291,26 +292,39 @@ export function SalesLong({ project }: { project: Project }) {
         </section>
       ) : null}
 
-      {copy.notFor.length || copy.willGet.length ? (
+      {copy.notFor.length || copy.willGet.length || copy.willGive?.length ? (
         <section style={{ padding: "0 0 108px" }}>
           <Shell>
-            <div className="lp-split" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 0 }}>
-              <div style={{ padding: "36px 32px", background: "var(--lp-surface)" }}>
-                <h3 style={{ margin: "0 0 16px", fontFamily: "var(--lp-heading)", fontSize: 30 }}>Não é para</h3>
-                <ul style={{ margin: 0, paddingLeft: 18, color: "var(--lp-muted)", lineHeight: 1.85 }}>
-                  {copy.notFor.filter(Boolean).map((item) => (
-                    <li key={item}>{item}</li>
-                  ))}
-                </ul>
-              </div>
-              <div style={{ padding: "36px 32px", background: "var(--lp-primary)", color: "#f7f8f3", transform: "translateY(-8px)" }}>
-                <h3 style={{ margin: "0 0 16px", fontFamily: "var(--lp-heading)", fontSize: 30 }}>Levas</h3>
-                <ul style={{ margin: 0, paddingLeft: 18, lineHeight: 1.85 }}>
+            <div
+              className="lp-split"
+              style={{ display: "grid", gridTemplateColumns: copy.willGive?.length ? "1fr 1fr 1fr" : "1fr 1fr", gap: 0 }}
+            >
+              <div style={{ padding: "36px 28px", background: "var(--lp-primary)", color: "#f7f8f3" }}>
+                <h3 style={{ margin: "0 0 16px", fontFamily: "var(--lp-heading)", fontSize: 28 }}>Levas</h3>
+                <ul style={{ margin: 0, paddingLeft: 18, lineHeight: 1.75 }}>
                   {copy.willGet.filter(Boolean).map((item) => (
                     <li key={item}>{item}</li>
                   ))}
                 </ul>
               </div>
+              <div style={{ padding: "36px 28px", background: "var(--lp-surface)" }}>
+                <h3 style={{ margin: "0 0 16px", fontFamily: "var(--lp-heading)", fontSize: 28 }}>Não levas</h3>
+                <ul style={{ margin: 0, paddingLeft: 18, color: "var(--lp-muted)", lineHeight: 1.75 }}>
+                  {copy.notFor.filter(Boolean).map((item) => (
+                    <li key={item}>{item}</li>
+                  ))}
+                </ul>
+              </div>
+              {copy.willGive?.filter(Boolean).length ? (
+                <div style={{ padding: "36px 28px", background: "var(--lp-surface)", borderLeft: "1px solid color-mix(in srgb, var(--lp-fg) 10%, transparent)" }}>
+                  <h3 style={{ margin: "0 0 16px", fontFamily: "var(--lp-heading)", fontSize: 28 }}>O que é teu</h3>
+                  <ul style={{ margin: 0, paddingLeft: 18, color: "var(--lp-muted)", lineHeight: 1.75 }}>
+                    {copy.willGive.filter(Boolean).map((item) => (
+                      <li key={item}>{item}</li>
+                    ))}
+                  </ul>
+                </div>
+              ) : null}
             </div>
           </Shell>
         </section>
@@ -327,17 +341,29 @@ export function SalesLong({ project }: { project: Project }) {
         </section>
       ) : null}
 
+      {copy.authority ? (
+        <section style={{ padding: "0 0 108px" }}>
+          <Shell>
+            <Eyebrow>Quem faz este trabalho</Eyebrow>
+            <p style={{ margin: "20px 0 0", maxWidth: 760, fontSize: 20, lineHeight: 1.7, color: "var(--lp-muted)" }}>
+              {copy.authority}
+            </p>
+          </Shell>
+        </section>
+      ) : null}
+
       <section style={{ padding: "0 0 120px" }}>
         <Shell>
-          <div className="lp-split" style={{ display: "grid", gridTemplateColumns: "1fr 0.85fr", gap: 56 }}>
-            <div>
-              <Eyebrow>Começar</Eyebrow>
-              <Heading size={52} style={{ marginTop: 16 }}>
-                {copy.nextStep}
-              </Heading>
-              <p style={{ color: "var(--lp-muted)", lineHeight: 1.65 }}>{copy.legal}</p>
-            </div>
+          <div style={{ display: "grid", gap: 28, maxWidth: 640 }}>
+            <Eyebrow>Começar</Eyebrow>
+            {copy.investment ? (
+              <p style={{ margin: 0, fontSize: 22, lineHeight: 1.55 }}>{copy.investment}</p>
+            ) : null}
+            <Heading size={40} style={{ lineHeight: 1.2 }}>
+              {copy.nextStep}
+            </Heading>
             <LeadForm project={project} />
+            <p style={{ color: "var(--lp-muted)", lineHeight: 1.65, margin: 0 }}>{copy.legal}</p>
           </div>
         </Shell>
       </section>

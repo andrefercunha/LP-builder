@@ -5,14 +5,14 @@ import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { renderPage } from "@/components/templates/render";
 import { fixedCopyToMarkdown, parseBriefMarkdown } from "@/lib/brief-md";
-import { FLAG_TAB, creationFor, fixedCopyToPageCopy, pageCopyToFixed } from "@/lib/creation";
+import { FLAG_TAB, creationFor, pageCopyToFixed } from "@/lib/creation";
 import { LOOKS, PAGE_TYPES } from "@/lib/defaults";
 import { recommendPage } from "@/lib/recommend";
 import { downloadHtml, downloadJson } from "@/lib/export-html";
 import { FONT_CATALOG } from "@/lib/fonts";
 import { auditProject, qualityScore } from "@/lib/quality";
 import { deleteProject, getProject, upsertProject } from "@/lib/store";
-import type { FontId, FormConfig, PageCopy, Project } from "@/lib/types";
+import type { FontId, FormConfig, Project } from "@/lib/types";
 import { CopyEditor } from "./CopyEditor";
 import { ColorField, ImageField, TextField } from "./fields";
 
@@ -155,7 +155,7 @@ export function Studio({ id }: { id: string }) {
         <div className="p-4 md:p-8">
           <div
             data-preview-root
-            className="origin-top overflow-hidden bg-white shadow-[0_30px_80px_#00000080]"
+            className="origin-top overflow-x-hidden bg-white shadow-[0_30px_80px_#00000080]"
           >
             {renderPage(project)}
           </div>

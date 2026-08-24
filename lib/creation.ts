@@ -22,9 +22,13 @@ export type FixedCopy = {
   proofQuote: string;
   proofName: string;
   notFor: string[];
+  willGet: string[];
+  willGive: string[];
   guarantee: string;
   nextStep: string;
   cta: string;
+  authority: string;
+  investment: string;
 };
 
 export type CopyFieldKind = "text" | "multiline" | "list" | "steps" | "proof" | "faqs";
@@ -68,9 +72,13 @@ export function emptyFixedCopy(): FixedCopy {
     proofQuote: "",
     proofName: "",
     notFor: ["", "", ""],
+    willGet: ["", "", ""],
+    willGive: ["", "", ""],
     guarantee: "",
     nextStep: "",
     cta: "",
+    authority: "",
+    investment: "",
   };
 }
 
@@ -105,10 +113,14 @@ export function fixedCopyToPageCopy(fixed: FixedCopy, base: PageCopy = emptyCopy
       },
     ],
     notFor: fixed.notFor.filter((item) => item.trim()),
+    willGet: (fixed.willGet ?? []).filter((item) => item.trim()),
+    willGive: (fixed.willGive ?? []).filter((item) => item.trim()),
     guarantee: fixed.guarantee.trim(),
     nextStep,
     cta: fixed.cta.trim(),
     ctaHref: base.ctaHref || "#form",
+    authority: fixed.authority.trim() || base.authority,
+    investment: fixed.investment.trim() || base.investment,
   };
 }
 
@@ -125,9 +137,13 @@ export function pageCopyToFixed(copy: PageCopy): FixedCopy {
     proofQuote: copy.proof[0]?.quote ?? "",
     proofName: copy.proof[0]?.name ?? "",
     notFor: copy.notFor,
+    willGet: copy.willGet ?? [],
+    willGive: copy.willGive ?? [],
     guarantee: copy.guarantee,
     nextStep: copy.nextStep,
     cta: copy.cta,
+    authority: copy.authority ?? "",
+    investment: copy.investment ?? "",
   };
 }
 

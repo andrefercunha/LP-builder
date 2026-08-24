@@ -19,6 +19,7 @@
 [data-lp-root] {
   position: relative;
   isolation: isolate;
+  overflow: visible;
   font-kerning: normal;
   text-rendering: optimizeLegibility;
 }
@@ -38,9 +39,9 @@
 }
 
 .lp-grain {
-  position: fixed;
+  position: absolute;
   inset: 0;
-  z-index: 60;
+  z-index: 0;
   opacity: 0.11;
   mix-blend-mode: overlay;
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 220 220' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
@@ -144,9 +145,17 @@
   pointer-events: none;
 }
 
+[data-lp-root] > *:not(.lp-grain) {
+  position: relative;
+  z-index: 1;
+}
+
 .lp-form {
   display: grid;
   gap: 13px;
+  width: 100%;
+  max-width: 520px;
+  min-width: 0;
   background: color-mix(in srgb, var(--lp-surface) 88%, transparent);
   padding: 24px;
   border-radius: var(--lp-radius);
